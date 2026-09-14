@@ -1,0 +1,60 @@
+@import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Figtree:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap");
+
+@theme {
+  /* Palette */
+  --color-paper: #F6F1EA;
+  --color-paper-dark: #EDE5D8;
+  --color-ink: #1C1409;
+  --color-ink-soft: #3D2E18;
+  --color-rule: #D6CBBA;
+  --color-muted: #9A8C7A;
+  --color-found: #2D5A1B;
+  --color-found-bg: #EEF5EB;
+
+  /* Typography */
+  --font-display: "Fraunces", Georgia, serif;
+  --font-body: "Figtree", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  /* Spacing */
+  --spacing-px: 1px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  min-height: 100vh;
+}
+
+::selection {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+/* Focus visible only for keyboard */
+:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
