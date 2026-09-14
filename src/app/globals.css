@@ -1,21 +1,23 @@
 @import "tailwindcss";
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Figtree:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap");
 
 @theme {
-  /* Palette */
-  --color-paper: #F6F1EA;
-  --color-paper-dark: #EDE5D8;
-  --color-ink: #1C1409;
-  --color-ink-soft: #3D2E18;
-  --color-rule: #D6CBBA;
-  --color-muted: #9A8C7A;
-  --color-found: #2D5A1B;
-  --color-found-bg: #EEF5EB;
+  /* Palette — Warm Instrument */
+  --color-base: #0E0C0A;
+  --color-surface: #1A1714;
+  --color-surface-raised: #111010;
+  --color-border: #2A2520;
+  --color-border-subtle: #3A3530;
+  --color-accent: #D4A574;
+  --color-text: #F0EDE8;
+  --color-text-secondary: #8B8078;
+  --color-text-muted: #5A5348;
+  --color-text-faint: #3A3530;
+  --color-success: #10B981;
 
   /* Typography */
-  --font-display: "Fraunces", Georgia, serif;
-  --font-body: "Figtree", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
+  --font-body: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-mono: "Space Mono", monospace;
 
   /* Spacing */
   --spacing-px: 1px;
@@ -26,8 +28,8 @@
 }
 
 html {
-  background-color: var(--color-paper);
-  color: var(--color-ink);
+  background-color: var(--color-base);
+  color: var(--color-text);
   font-family: var(--font-body);
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
@@ -38,13 +40,12 @@ body {
 }
 
 ::selection {
-  background-color: var(--color-ink);
-  color: var(--color-paper);
+  background-color: var(--color-accent);
+  color: var(--color-base);
 }
 
-/* Focus visible only for keyboard */
 :focus-visible {
-  outline: 2px solid var(--color-ink);
+  outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
 
