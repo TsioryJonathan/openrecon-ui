@@ -18,12 +18,11 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
   const [duration, setDuration] = useState<number | undefined>();
   const inputRef = useRef<HTMLInputElement>(null);
-  const resultsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     getSites()
       .then((data) => setCategories(data.categories))
-      .catch(() => {/* silently fail, user will see empty picker */});
+      .catch(() => {});
   }, []);
 
   async function handleScan(e: React.FormEvent) {
@@ -42,10 +41,6 @@ export default function HomePage() {
       setResults(data.results);
       setDuration(elapsed);
       setPhase("done");
-
-      setTimeout(() => {
-        resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 100);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Scan failed");
       setPhase("error");
@@ -65,158 +60,137 @@ export default function HomePage() {
     username.trim().length > 0 && selected.length > 0 && phase !== "scanning";
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--color-paper)" }}>
+    <div style={{ minHeight: "100vh", background: "var(--color-base)" }}>
       <Masthead />
 
-      <main style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 32px 80px" }}>
-
-        {/* Search form */}
-        <form onSubmit={handleScan}>
+      <main
+        style={{
+          maxWidth: "600px",
+          margin: "0 auto",
+          padding: "40px 24px 80px",
+        }}
+      >
+        {/* Hero */}
+        <div style={{ textAlign: "center", marginBottom: "48px" }}>
           <div
             style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "0",
-              borderBottom: "1px solid var(--color-rule)",
-              paddingBottom: "32px",
-              marginBottom: "32px",
+              fontFamily: "var(--font-mono)",
+              fontSize: "11px",
+              letterSpacing: "2.5px",
+              textTransform: "uppercase",
+              color: "var(--color-accent)",
+              marginBottom: "14px",
+              fontWeight: 500,
             }}
           >
-            {/* Username input — styled as a newspaper headline input */}
-            <label
-              htmlFor="username"
+            OSINT USERNAME SCANNER
+          </div>
+          <h1
+            style={{
+              fontFamily: "var(--font-body)",
+              fontSize: "32px",
+              fontWeight: 700,
+              color: "var(--color-text)",
+              lineHeight: 1.15,
+              marginBottom: "28px",
+              letterSpacing: "-0.8px",
+            }}
+          >
+            Find where a name lives online
+          </h1>
+
+          {/* Search bar */}
+          <form onSubmit={handleScan}>
+            <div
               style={{
-                fontFamily: "var(--font-display)",
-                fontSize: "13px",
-                fontStyle: "italic",
-                color: "var(--color-muted)",
-                marginBottom: "8px",
-                display: "block",
+                background: "var(--color-surface)",
+                border: "1px solid var(--color-border)",
+                borderRadius: "12px",
+                padding: "18px 24px",
+                display: "flex",
+                alignItems: "center",
+                gap: "14px",
+                transition: "border-color 0.2s ease",
               }}
             >
-              Username to investigate
-            </label>
-
-            <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+              <span
+                style={{
+                  color: "var(--color-accent)",
+                  fontSize: "15px",
+                  fontFamily: "var(--font-mono)",
+                }}
+              >
+                ~
+              </span>
               <input
                 ref={inputRef}
-                id="username"
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="john_doe"
+                placeholder="johndoe"
                 autoComplete="off"
                 spellCheck={false}
                 disabled={phase === "scanning"}
                 style={{
-                  fontFamily: "var(--font-display)",
-                  fontSize: "clamp(24px, 4vw, 40px)",
-                  fontWeight: 500,
-                  fontOpticalSizing: "auto",
-                  border: "none",
-                  borderBottom: "2px solid var(--color-ink)",
-                  background: "transparent",
-                  color: "var(--color-ink)",
-                  padding: "4px 0",
-                  width: "100%",
-                  outline: "none",
                   flex: 1,
-                } as React.CSSProperties}
+                  background: "transparent",
+                  border: "none",
+                  outline: "none",
+                  fontSize: "15px",
+                  fontFamily: "var(--font-body)",
+                  color: "var(--color-text)",
+                }}
               />
-
-              {/* Scan / Reset button */}
-              {phase === "done" || phase === "error" ? (
-                <button
-                  type="button"
-                  onClick={handleReset}
+              {phase === "scanning" && (
+                <span
                   style={{
-                    fontFamily: "var(--font-body)",
-                    fontSize: "13px",
-                    fontWeight: 500,
-                    padding: "10px 20px",
-                    background: "transparent",
-                    border: "1.5px solid var(--color-rule)",
-                    color: "var(--color-ink-soft)",
-                    cursor: "pointer",
-                    whiteSpace: "nowrap",
-                    flexShrink: 0,
+                    fontSize: "11px",
+                    color: "var(--color-accent)",
+                    fontFamily: "var(--font-mono)",
                   }}
                 >
-                  New scan
-                </button>
-              ) : (
-                <button
-                  type="submit"
-                  disabled={!canSubmit}
-                  style={{
-                    fontFamily: "var(--font-body)",
-                    fontSize: "13px",
-                    fontWeight: 600,
-                    padding: "10px 24px",
-                    background: canSubmit ? "var(--color-ink)" : "var(--color-rule)",
-                    border: "none",
-                    color: canSubmit ? "var(--color-paper)" : "var(--color-muted)",
-                    cursor: canSubmit ? "pointer" : "not-allowed",
-                    transition: "background 0.15s ease",
-                    whiteSpace: "nowrap",
-                    flexShrink: 0,
-                  }}
-                >
-                  {phase === "scanning" ? "Scanning…" : "Run scan"}
-                </button>
+                  scanning...
+                </span>
               )}
             </div>
 
-            {/* Selection counter */}
-            <p
+            <div
               style={{
-                fontFamily: "var(--font-mono)",
                 fontSize: "11px",
-                color: selected.length > 0 ? "var(--color-found)" : "var(--color-muted)",
-                marginTop: "8px",
+                color: "var(--color-text-faint)",
+                marginTop: "10px",
+                fontFamily: "var(--font-body)",
               }}
             >
-              {selected.length} platform{selected.length !== 1 ? "s" : ""} selected
-            </p>
-          </div>
+              Press Enter to scan · Select categories below to filter
+            </div>
+          </form>
+        </div>
 
-          {/* Category picker */}
-          {phase === "idle" || phase === "error" ? (
-            <div>
-              <p
+        {/* Categories grid */}
+        {phase === "idle" || phase === "error" ? (
+          <div>
+            {categories.length === 0 ? (
+              <div
                 style={{
-                  fontFamily: "var(--font-display)",
-                  fontSize: "14px",
-                  fontStyle: "italic",
-                  color: "var(--color-muted)",
-                  marginBottom: "16px",
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "12px",
+                  color: "var(--color-text-muted)",
+                  padding: "32px 0",
+                  textAlign: "center",
                 }}
               >
-                Select which categories to scan
-              </p>
-
-              {categories.length === 0 ? (
-                <div
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "12px",
-                    color: "var(--color-muted)",
-                    padding: "32px 0",
-                    textAlign: "center",
-                  }}
-                >
-                  Loading platforms… (is the API running?)
-                </div>
-              ) : (
-                <CategoryPicker
-                  categories={categories}
-                  selected={selected}
-                  onChange={setSelected}
-                />
-              )}
-            </div>
-          ) : null}
-        </form>
+                Loading platforms… (is the API running?)
+              </div>
+            ) : (
+              <CategoryPicker
+                categories={categories}
+                selected={selected}
+                onChange={setSelected}
+              />
+            )}
+          </div>
+        ) : null}
 
         {/* Scanning state */}
         {phase === "scanning" && (
@@ -231,27 +205,24 @@ export default function HomePage() {
           >
             <p
               style={{
-                fontFamily: "var(--font-display)",
-                fontSize: "clamp(28px, 5vw, 52px)",
+                fontFamily: "var(--font-body)",
+                fontSize: "20px",
                 fontWeight: 600,
-                fontStyle: "italic",
-                color: "var(--color-ink)",
+                color: "var(--color-text)",
                 textAlign: "center",
-                fontOpticalSizing: "auto",
-              } as React.CSSProperties}
+              }}
             >
               Scanning &ldquo;{username}&rdquo;
             </p>
             <p
               style={{
                 fontFamily: "var(--font-mono)",
-                fontSize: "12px",
-                color: "var(--color-muted)",
+                fontSize: "11px",
+                color: "var(--color-text-muted)",
               }}
             >
               checking {selected.length} platforms via sherlock-rs…
             </p>
-            <ScanningDots />
           </div>
         )}
 
@@ -259,17 +230,19 @@ export default function HomePage() {
         {phase === "error" && error && (
           <div
             style={{
-              border: "1.5px solid var(--color-ink)",
+              border: "1px solid var(--color-border)",
               padding: "20px 24px",
+              borderRadius: "8px",
               marginBottom: "24px",
+              background: "var(--color-surface)",
             }}
           >
             <p
               style={{
-                fontFamily: "var(--font-display)",
-                fontSize: "16px",
-                fontStyle: "italic",
-                color: "var(--color-ink)",
+                fontFamily: "var(--font-body)",
+                fontSize: "14px",
+                fontWeight: 600,
+                color: "var(--color-text)",
                 marginBottom: "4px",
               }}
             >
@@ -278,8 +251,8 @@ export default function HomePage() {
             <p
               style={{
                 fontFamily: "var(--font-mono)",
-                fontSize: "12px",
-                color: "var(--color-muted)",
+                fontSize: "11px",
+                color: "var(--color-text-muted)",
               }}
             >
               {error}
@@ -289,7 +262,53 @@ export default function HomePage() {
 
         {/* Results */}
         {phase === "done" && (
-          <div ref={resultsRef}>
+          <div>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "16px",
+              }}
+            >
+              <div>
+                <div
+                  style={{
+                    fontFamily: "var(--font-body)",
+                    fontSize: "15px",
+                    fontWeight: 600,
+                    color: "var(--color-text)",
+                  }}
+                >
+                  Scanning @{username}
+                </div>
+                <div
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "11px",
+                    color: "var(--color-text-muted)",
+                    marginTop: "4px",
+                  }}
+                >
+                  {results.length} / {selected.length} checked · {results.length} found
+                  {duration !== undefined && ` · ${duration.toFixed(1)}s`}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleReset}
+                style={{
+                  fontFamily: "var(--font-body)",
+                  fontSize: "12px",
+                  color: "var(--color-accent)",
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
+                New scan
+              </button>
+            </div>
             <ScanResults
               username={username}
               results={results}
@@ -299,32 +318,6 @@ export default function HomePage() {
           </div>
         )}
       </main>
-    </div>
-  );
-}
-
-function ScanningDots() {
-  return (
-    <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
-      {[0, 1, 2].map((i) => (
-        <span
-          key={i}
-          style={{
-            width: "6px",
-            height: "6px",
-            borderRadius: "50%",
-            background: "var(--color-ink)",
-            display: "inline-block",
-            animation: `pulse 1.2s ease-in-out ${i * 0.2}s infinite`,
-          }}
-        />
-      ))}
-      <style>{`
-        @keyframes pulse {
-          0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
-          40% { opacity: 1; transform: scale(1); }
-        }
-      `}</style>
     </div>
   );
 }
