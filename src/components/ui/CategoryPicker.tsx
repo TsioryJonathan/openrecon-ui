@@ -7,28 +7,36 @@ interface CategoryPickerProps {
   categories: CategorySites[];
   selected: string[];
   onChange: (sites: string[]) => void;
-  max?: number;
 }
 
 export default function CategoryPicker({
   categories,
   selected,
   onChange,
-  max = 50,
 }: CategoryPickerProps) {
   const [expanded, setExpanded] = useState<string | null>(null);
 
+  const allSites = categories.flatMap((c) => c.sites);
+  const allSelected = allSites.length > 0 && allSites.every((s) => selected.includes(s));
+  const someSelected = selected.length > 0 && !allSelected;
+
+  function toggleAll() {
+    if (allSelected) {
+      onChange([]);
+    } else {
+      onChange([...allSites]);
+    }
+  }
+
   function toggleCategory(cat: CategorySites) {
     const catSites = cat.sites;
-    const allSelected = catSites.every((s) => selected.includes(s));
+    const allCatSelected = catSites.every((s) => selected.includes(s));
 
-    if (allSelected) {
+    if (allCatSelected) {
       onChange(selected.filter((s) => !catSites.includes(s)));
     } else {
       const toAdd = catSites.filter((s) => !selected.includes(s));
-      const available = max - selected.length;
-      if (available <= 0) return;
-      onChange([...selected, ...toAdd.slice(0, available)]);
+      onChange([...selected, ...toAdd]);
     }
   }
 
@@ -36,7 +44,6 @@ export default function CategoryPicker({
     if (selected.includes(site)) {
       onChange(selected.filter((s) => s !== site));
     } else {
-      if (selected.length >= max) return;
       onChange([...selected, site]);
     }
   }
@@ -50,6 +57,75 @@ export default function CategoryPicker({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
+      {/* All sites row */}
+      <div
+        style={{
+          border: "1px solid var(--color-rule)",
+          background: allSelected ? "var(--color-found-bg)" : "white",
+          transition: "background 0.15s ease",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            padding: "10px 14px",
+            cursor: "pointer",
+            userSelect: "none",
+          }}
+          onClick={toggleAll}
+        >
+          <button
+            aria-label="Select all sites"
+            style={{
+              width: "16px",
+              height: "16px",
+              border: "1.5px solid var(--color-ink)",
+              background: allSelected
+                ? "var(--color-ink)"
+                : someSelected
+                ? "var(--color-muted)"
+                : "transparent",
+              cursor: "pointer",
+              flexShrink: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 0,
+            }}
+          >
+            {(allSelected || someSelected) && (
+              <span style={{ color: "white", fontSize: "10px", lineHeight: 1, fontWeight: 700 }}>
+                {allSelected ? "✓" : "–"}
+              </span>
+            )}
+          </button>
+
+          <span
+            style={{
+              fontFamily: "var(--font-body)",
+              fontSize: "13px",
+              fontWeight: 600,
+              color: "var(--color-ink)",
+              flex: 1,
+            }}
+          >
+            All sites
+          </span>
+
+          <span
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "10px",
+              color: "var(--color-muted)",
+            }}
+          >
+            {selected.length}/{allSites.length}
+          </span>
+        </div>
+      </div>
+
       {categories.map((cat) => {
         const state = getCategoryState(cat);
         const isOpen = expanded === cat.name;
@@ -175,12 +251,10 @@ export default function CategoryPicker({
               >
                 {cat.sites.map((site) => {
                   const isSelected = selected.includes(site);
-                  const atMax = selected.length >= max && !isSelected;
                   return (
                     <button
                       key={site}
-                      onClick={() => !atMax && toggleSite(site)}
-                      disabled={atMax}
+                      onClick={() => toggleSite(site)}
                       style={{
                         fontFamily: "var(--font-body)",
                         fontSize: "12px",
@@ -194,12 +268,9 @@ export default function CategoryPicker({
                           : "transparent",
                         color: isSelected
                           ? "var(--color-found)"
-                          : atMax
-                          ? "var(--color-muted)"
                           : "var(--color-ink-soft)",
-                        cursor: atMax ? "not-allowed" : "pointer",
+                        cursor: "pointer",
                         transition: "all 0.1s ease",
-                        opacity: atMax ? 0.5 : 1,
                       }}
                     >
                       {site}

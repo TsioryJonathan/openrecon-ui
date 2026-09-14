@@ -7,8 +7,6 @@ import ScanResults from "@/components/ui/ScanResults";
 import { getSites, searchUsername } from "@/lib/api";
 import type { CategorySites, ResultItem } from "@/types/api";
 
-const MAX_SITES = 50;
-
 type Phase = "idle" | "scanning" | "done" | "error";
 
 export default function HomePage() {
@@ -174,11 +172,11 @@ export default function HomePage() {
               style={{
                 fontFamily: "var(--font-mono)",
                 fontSize: "11px",
-                color: selected.length >= MAX_SITES ? "var(--color-found)" : "var(--color-muted)",
+                color: selected.length > 0 ? "var(--color-found)" : "var(--color-muted)",
                 marginTop: "8px",
               }}
             >
-              {selected.length} / {MAX_SITES} platforms selected
+              {selected.length} platform{selected.length !== 1 ? "s" : ""} selected
             </p>
           </div>
 
@@ -214,7 +212,6 @@ export default function HomePage() {
                   categories={categories}
                   selected={selected}
                   onChange={setSelected}
-                  max={MAX_SITES}
                 />
               )}
             </div>
