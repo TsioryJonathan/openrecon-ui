@@ -53,41 +53,47 @@ export default function ResultsPage() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--color-paper)" }}>
+    <div style={{ minHeight: "100vh", background: "var(--color-base)" }}>
       <Masthead />
 
-      <main style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 32px 80px" }}>
-
-        {/* Page title */}
+      <main
+        style={{
+          maxWidth: "700px",
+          margin: "0 auto",
+          padding: "40px 24px 80px",
+        }}
+      >
+        {/* Header */}
         <div
           style={{
-            borderBottom: "2px solid var(--color-ink)",
-            paddingBottom: "20px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
             marginBottom: "32px",
           }}
         >
           <h1
             style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "clamp(28px, 4vw, 44px)",
+              fontFamily: "var(--font-body)",
+              fontSize: "16px",
               fontWeight: 700,
-              color: "var(--color-ink)",
-              marginBottom: "4px",
-              fontOpticalSizing: "auto",
-            } as React.CSSProperties}
-          >
-            Scan history
-          </h1>
-          <p
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "14px",
-              fontStyle: "italic",
-              color: "var(--color-muted)",
+              color: "var(--color-text)",
+              letterSpacing: "-0.3px",
             }}
           >
-            Look up previous scans by username
-          </p>
+            Scan History
+          </h1>
+          <a
+            href="/"
+            style={{
+              fontFamily: "var(--font-body)",
+              fontSize: "12px",
+              color: "var(--color-accent)",
+              textDecoration: "none",
+            }}
+          >
+            ← back to scan
+          </a>
         </div>
 
         {/* Lookup form */}
@@ -96,69 +102,69 @@ export default function ResultsPage() {
           style={{
             display: "flex",
             gap: "12px",
-            alignItems: "flex-end",
-            marginBottom: "40px",
+            alignItems: "center",
+            marginBottom: "32px",
           }}
         >
-          <div style={{ flex: 1 }}>
-            <label
-              htmlFor="lookup"
+          <div
+            style={{
+              flex: 1,
+              background: "var(--color-surface)",
+              border: "1px solid var(--color-border)",
+              borderRadius: "8px",
+              padding: "12px 16px",
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+            }}
+          >
+            <span
               style={{
-                fontFamily: "var(--font-display)",
-                fontSize: "12px",
-                fontStyle: "italic",
-                color: "var(--color-muted)",
-                display: "block",
-                marginBottom: "6px",
+                color: "var(--color-accent)",
+                fontSize: "13px",
+                fontFamily: "var(--font-mono)",
               }}
             >
-              Username
-            </label>
+              ~
+            </span>
             <input
-              id="lookup"
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="john_doe"
+              placeholder="Enter username to look up"
               autoComplete="off"
               spellCheck={false}
               style={{
-                fontFamily: "var(--font-display)",
-                fontSize: "22px",
-                fontWeight: 500,
-                fontOpticalSizing: "auto",
-                border: "none",
-                borderBottom: "2px solid var(--color-ink)",
+                flex: 1,
                 background: "transparent",
-                color: "var(--color-ink)",
-                padding: "4px 0",
-                width: "100%",
+                border: "none",
                 outline: "none",
-              } as React.CSSProperties}
+                fontSize: "13px",
+                fontFamily: "var(--font-body)",
+                color: "var(--color-text)",
+              }}
             />
           </div>
-
           <button
             type="submit"
             disabled={loading || !username.trim()}
             style={{
               fontFamily: "var(--font-body)",
-              fontSize: "13px",
+              fontSize: "12px",
               fontWeight: 600,
-              padding: "10px 24px",
+              padding: "12px 20px",
               background:
                 loading || !username.trim()
-                  ? "var(--color-rule)"
-                  : "var(--color-ink)",
-              border: "none",
+                  ? "var(--color-surface)"
+                  : "var(--color-accent)",
+              border: "1px solid var(--color-border)",
+              borderRadius: "8px",
               color:
                 loading || !username.trim()
-                  ? "var(--color-muted)"
-                  : "var(--color-paper)",
+                  ? "var(--color-text-muted)"
+                  : "var(--color-base)",
               cursor: loading || !username.trim() ? "not-allowed" : "pointer",
-              transition: "background 0.15s ease",
-              whiteSpace: "nowrap",
-              flexShrink: 0,
+              transition: "all 0.15s ease",
             }}
           >
             {loading ? "Looking up…" : "Look up"}
@@ -169,16 +175,18 @@ export default function ResultsPage() {
         {error && (
           <div
             style={{
-              border: "1.5px solid var(--color-ink)",
+              border: "1px solid var(--color-border)",
               padding: "16px 20px",
+              borderRadius: "8px",
               marginBottom: "24px",
+              background: "var(--color-surface)",
             }}
           >
             <p
               style={{
                 fontFamily: "var(--font-mono)",
-                fontSize: "12px",
-                color: "var(--color-muted)",
+                fontSize: "11px",
+                color: "var(--color-text-muted)",
               }}
             >
               {error}
@@ -196,10 +204,10 @@ export default function ResultsPage() {
           >
             <p
               style={{
-                fontFamily: "var(--font-display)",
-                fontSize: "24px",
-                fontStyle: "italic",
-                color: "var(--color-muted)",
+                fontFamily: "var(--font-body)",
+                fontSize: "16px",
+                fontWeight: 600,
+                color: "var(--color-text-secondary)",
               }}
             >
               No scans found for &ldquo;{username}&rdquo;
@@ -207,8 +215,8 @@ export default function ResultsPage() {
             <p
               style={{
                 fontFamily: "var(--font-body)",
-                fontSize: "13px",
-                color: "var(--color-muted)",
+                fontSize: "12px",
+                color: "var(--color-text-muted)",
                 marginTop: "8px",
               }}
             >
@@ -217,72 +225,116 @@ export default function ResultsPage() {
           </div>
         )}
 
-        {/* Scan history */}
+        {/* Scan history table */}
         {data && (
           <div>
-            {/* Scan selector */}
             <div
               style={{
-                borderBottom: "1px solid var(--color-rule)",
-                marginBottom: "28px",
-                paddingBottom: "16px",
-                display: "flex",
-                gap: "8px",
-                flexWrap: "wrap",
+                fontSize: "11px",
+                color: "var(--color-text-muted)",
+                fontFamily: "var(--font-mono)",
+                marginBottom: "16px",
               }}
             >
-              <p
+              {data.searches.length} scan{data.searches.length !== 1 ? "s" : ""} on
+              record for &ldquo;{data.username}&rdquo;
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "1px",
+                background: "var(--color-border)",
+                border: "1px solid var(--color-border)",
+                borderRadius: "8px",
+                overflow: "hidden",
+              }}
+            >
+              {/* Header row */}
+              <div
                 style={{
-                  fontFamily: "var(--font-display)",
-                  fontSize: "13px",
-                  fontStyle: "italic",
-                  color: "var(--color-muted)",
-                  width: "100%",
-                  marginBottom: "8px",
+                  display: "grid",
+                  gridTemplateColumns: "1fr 100px 120px 80px",
+                  padding: "12px 18px",
+                  background: "var(--color-surface)",
+                  fontSize: "10px",
+                  textTransform: "uppercase",
+                  letterSpacing: "1.5px",
+                  color: "var(--color-text-muted)",
+                  fontFamily: "var(--font-mono)",
                 }}
               >
-                {data.searches.length} scan{data.searches.length !== 1 ? "s" : ""} on record for &ldquo;{data.username}&rdquo;
-              </p>
+                <span>Username</span>
+                <span>Found</span>
+                <span>Date</span>
+                <span></span>
+              </div>
 
-              {data.searches.map((scan, i) => {
-                const isActive = selectedScan?.id === scan.id;
-                return (
-                  <button
-                    key={scan.id}
-                    onClick={() => setSelectedScan(scan)}
+              {/* Data rows */}
+              {data.searches.map((scan, i) => (
+                <div
+                  key={scan.id}
+                  onClick={() => setSelectedScan(scan)}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 100px 120px 80px",
+                    padding: "14px 18px",
+                    background:
+                      i % 2 === 0 ? "var(--color-base)" : "var(--color-surface-raised)",
+                    fontSize: "12px",
+                    alignItems: "center",
+                    cursor: "pointer",
+                    transition: "background 0.1s ease",
+                  }}
+                >
+                  <span
                     style={{
+                      color: "var(--color-text)",
+                      fontWeight: 500,
+                      fontFamily: "var(--font-body)",
+                    }}
+                  >
+                    @{data.username}
+                  </span>
+                  <span
+                    style={{
+                      color: "var(--color-accent)",
                       fontFamily: "var(--font-mono)",
-                      fontSize: "11px",
-                      padding: "6px 12px",
-                      border: `1px solid ${isActive ? "var(--color-ink)" : "var(--color-rule)"}`,
-                      background: isActive ? "var(--color-ink)" : "transparent",
-                      color: isActive ? "var(--color-paper)" : "var(--color-muted)",
-                      cursor: "pointer",
-                      transition: "all 0.1s ease",
+                    }}
+                  >
+                    {scan.results.length} / 480
+                  </span>
+                  <span
+                    style={{
+                      color: "var(--color-text-muted)",
+                      fontFamily: "var(--font-body)",
                     }}
                   >
                     {formatDate(scan.created_at)}
-                    <span
-                      style={{
-                        marginLeft: "6px",
-                        color: isActive ? "var(--color-paper)" : "var(--color-found)",
-                        opacity: isActive ? 0.7 : 1,
-                      }}
-                    >
-                      {scan.results.length} found
-                    </span>
-                  </button>
-                );
-              })}
+                  </span>
+                  <span
+                    style={{
+                      color: "var(--color-accent)",
+                      textAlign: "right",
+                      fontFamily: "var(--font-body)",
+                    }}
+                  >
+                    view →
+                  </span>
+                </div>
+              ))}
             </div>
 
             {/* Selected scan results */}
             {selectedScan && (
-              <ScanResults
-                username={data.username}
-                results={selectedScan.results}
-                scannedCount={selectedScan.results.length}
-              />
+              <div style={{ marginTop: "32px" }}>
+                <ScanResults
+                  username={data.username}
+                  results={selectedScan.results}
+                  scannedCount={selectedScan.results.length}
+                />
+              </div>
             )}
           </div>
         )}
