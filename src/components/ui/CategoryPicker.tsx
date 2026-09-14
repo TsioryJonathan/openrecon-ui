@@ -15,10 +15,8 @@ export default function CategoryPicker({
   onChange,
 }: CategoryPickerProps) {
   const [expanded, setExpanded] = useState<string | null>(null);
-
   const allSites = categories.flatMap((c) => c.sites);
   const allSelected = allSites.length > 0 && allSites.every((s) => selected.includes(s));
-  const someSelected = selected.length > 0 && !allSelected;
 
   function toggleAll() {
     if (allSelected) {
@@ -48,240 +46,145 @@ export default function CategoryPicker({
     }
   }
 
-  function getCategoryState(cat: CategorySites): "all" | "some" | "none" {
-    const count = cat.sites.filter((s) => selected.includes(s)).length;
-    if (count === cat.sites.length) return "all";
-    if (count > 0) return "some";
-    return "none";
+  function getCategoryCount(cat: CategorySites) {
+    return cat.sites.filter((s) => selected.includes(s)).length;
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
-      {/* All sites row */}
-      <div
+    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+      {/* All sites card */}
+      <button
+        type="button"
+        onClick={toggleAll}
         style={{
-          border: "1px solid var(--color-rule)",
-          background: allSelected ? "var(--color-found-bg)" : "white",
-          transition: "background 0.15s ease",
+          background: "var(--color-surface)",
+          border: `1px solid ${allSelected ? "var(--color-accent)" : "var(--color-border)"}`,
+          borderRadius: "10px",
+          padding: "18px",
+          textAlign: "center",
+          cursor: "pointer",
+          transition: "border-color 0.15s ease",
+          width: "100%",
         }}
       >
         <div
           style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "12px",
-            padding: "10px 14px",
-            cursor: "pointer",
-            userSelect: "none",
+            fontSize: "13px",
+            color: allSelected ? "var(--color-accent)" : "var(--color-text)",
+            fontWeight: 600,
+            fontFamily: "var(--font-body)",
           }}
-          onClick={toggleAll}
         >
-          <button
-            aria-label="Select all sites"
-            style={{
-              width: "16px",
-              height: "16px",
-              border: "1.5px solid var(--color-ink)",
-              background: allSelected
-                ? "var(--color-ink)"
-                : someSelected
-                ? "var(--color-muted)"
-                : "transparent",
-              cursor: "pointer",
-              flexShrink: 0,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: 0,
-            }}
-          >
-            {(allSelected || someSelected) && (
-              <span style={{ color: "white", fontSize: "10px", lineHeight: 1, fontWeight: 700 }}>
-                {allSelected ? "✓" : "–"}
-              </span>
-            )}
-          </button>
-
-          <span
-            style={{
-              fontFamily: "var(--font-body)",
-              fontSize: "13px",
-              fontWeight: 600,
-              color: "var(--color-ink)",
-              flex: 1,
-            }}
-          >
-            All sites
-          </span>
-
-          <span
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "10px",
-              color: "var(--color-muted)",
-            }}
-          >
-            {selected.length}/{allSites.length}
-          </span>
+          All sites
         </div>
-      </div>
+        <div
+          style={{
+            fontSize: "11px",
+            color: "var(--color-text-muted)",
+            marginTop: "4px",
+            fontFamily: "var(--font-mono)",
+          }}
+        >
+          {selected.length}/{allSites.length}
+        </div>
+      </button>
 
-      {categories.map((cat) => {
-        const state = getCategoryState(cat);
-        const isOpen = expanded === cat.name;
-        const selectedCount = cat.sites.filter((s) =>
-          selected.includes(s)
-        ).length;
+      {/* Category cards */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(3, 1fr)",
+          gap: "8px",
+        }}
+      >
+        {categories.map((cat) => {
+          const count = getCategoryCount(cat);
+          const isActive = count > 0;
+          const isOpen = expanded === cat.name;
 
-        return (
-          <div
-            key={cat.name}
-            style={{
-              border: "1px solid var(--color-rule)",
-              background:
-                state !== "none" ? "var(--color-found-bg)" : "white",
-              transition: "background 0.15s ease",
-            }}
-          >
-            {/* Category row */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
-                padding: "10px 14px",
-                cursor: "pointer",
-                userSelect: "none",
-              }}
-            >
-              {/* Checkbox */}
+          return (
+            <div key={cat.name}>
               <button
-                onClick={() => toggleCategory(cat)}
-                aria-label={`Select all ${cat.name}`}
+                type="button"
+                onClick={() => {
+                  if (isOpen) {
+                    setExpanded(null);
+                  } else {
+                    setExpanded(cat.name);
+                  }
+                }}
                 style={{
-                  width: "16px",
-                  height: "16px",
-                  border: "1.5px solid var(--color-ink)",
-                  background:
-                    state === "all"
-                      ? "var(--color-ink)"
-                      : state === "some"
-                      ? "var(--color-muted)"
-                      : "transparent",
+                  background: "var(--color-surface)",
+                  border: `1px solid ${isActive ? "var(--color-accent)" : "var(--color-border)"}`,
+                  borderRadius: "10px",
+                  padding: "18px",
+                  textAlign: "center",
                   cursor: "pointer",
-                  flexShrink: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: 0,
+                  transition: "border-color 0.15s ease",
+                  width: "100%",
                 }}
               >
-                {state !== "none" && (
-                  <span
-                    style={{
-                      color: "white",
-                      fontSize: "10px",
-                      lineHeight: 1,
-                      fontWeight: 700,
-                    }}
-                  >
-                    {state === "all" ? "✓" : "–"}
-                  </span>
-                )}
-              </button>
-
-              {/* Label */}
-              <span
-                onClick={() => setExpanded(isOpen ? null : cat.name)}
-                style={{
-                  fontFamily: "var(--font-body)",
-                  fontSize: "13px",
-                  fontWeight: 500,
-                  color: "var(--color-ink)",
-                  flex: 1,
-                }}
-              >
-                {cat.name}
-              </span>
-
-              {/* Count badge */}
-              {selectedCount > 0 && (
-                <span
+                <div
                   style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "10px",
-                    color: "var(--color-found)",
-                    fontWeight: 500,
+                    fontSize: "13px",
+                    color: isActive ? "var(--color-accent)" : "var(--color-text-secondary)",
+                    fontWeight: 600,
+                    fontFamily: "var(--font-body)",
                   }}
                 >
-                  {selectedCount}/{cat.sites.length}
-                </span>
-              )}
-
-              {/* Expand toggle */}
-              <button
-                onClick={() => setExpanded(isOpen ? null : cat.name)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "11px",
-                  color: "var(--color-muted)",
-                  padding: "0 2px",
-                  transition: "transform 0.15s ease",
-                  transform: isOpen ? "rotate(90deg)" : "none",
-                }}
-                aria-label={isOpen ? "Collapse" : "Expand"}
-              >
-                ›
+                  {cat.name}
+                </div>
+                <div
+                  style={{
+                    fontSize: "11px",
+                    color: "var(--color-text-muted)",
+                    marginTop: "4px",
+                    fontFamily: "var(--font-mono)",
+                  }}
+                >
+                  {count > 0 ? `${count}/` : ""}{cat.sites.length}
+                </div>
               </button>
-            </div>
 
-            {/* Site list */}
-            {isOpen && (
-              <div
-                style={{
-                  borderTop: "1px solid var(--color-rule)",
-                  padding: "10px 14px 10px 42px",
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: "6px 10px",
-                }}
-              >
-                {cat.sites.map((site) => {
-                  const isSelected = selected.includes(site);
-                  return (
-                    <button
-                      key={site}
-                      onClick={() => toggleSite(site)}
-                      style={{
-                        fontFamily: "var(--font-body)",
-                        fontSize: "12px",
-                        fontWeight: isSelected ? 600 : 400,
-                        padding: "3px 8px",
-                        border: `1px solid ${
-                          isSelected ? "var(--color-found)" : "var(--color-rule)"
-                        }`,
-                        background: isSelected
-                          ? "var(--color-found-bg)"
-                          : "transparent",
-                        color: isSelected
-                          ? "var(--color-found)"
-                          : "var(--color-ink-soft)",
-                        cursor: "pointer",
-                        transition: "all 0.1s ease",
-                      }}
-                    >
-                      {site}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        );
-      })}
+              {/* Expanded site list */}
+              {isOpen && (
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: "6px",
+                    padding: "8px 0",
+                  }}
+                >
+                  {cat.sites.map((site) => {
+                    const isSelected = selected.includes(site);
+                    return (
+                      <button
+                        key={site}
+                        type="button"
+                        onClick={() => toggleSite(site)}
+                        style={{
+                          fontFamily: "var(--font-mono)",
+                          fontSize: "10px",
+                          padding: "4px 8px",
+                          border: `1px solid ${isSelected ? "var(--color-accent)" : "var(--color-border)"}`,
+                          borderRadius: "6px",
+                          background: isSelected ? "var(--color-accent)" : "transparent",
+                          color: isSelected ? "var(--color-base)" : "var(--color-text-muted)",
+                          cursor: "pointer",
+                          transition: "all 0.1s ease",
+                        }}
+                      >
+                        {site}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
