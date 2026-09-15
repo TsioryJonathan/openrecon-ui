@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { AlertCircle, RotateCcw } from "lucide-react";
+import { AlertCircle, RotateCcw, ChevronDown, ChevronRight } from "lucide-react";
 import type { ReactNode, ButtonHTMLAttributes, InputHTMLAttributes } from "react";
 
 // ─── ToolPage ────────────────────────────────────────────────────────────────
@@ -153,6 +153,77 @@ export function Divider({ className, style }: { className?: string; style?: Reac
       className={cn("divider", className)}
       style={{ margin: "1.75rem 0", ...style }}
     />
+  );
+}
+
+// ─── AccordionSection ────────────────────────────────────────────────────────
+// Collapsible section with clickable header - used for grouped results.
+
+interface AccordionSectionProps {
+  label: string;
+  count?: number;
+  icon?: ReactNode;
+  defaultOpen?: boolean;
+  headerRight?: ReactNode;
+  children: ReactNode;
+}
+
+export function AccordionSection({
+  label,
+  count,
+  icon,
+  defaultOpen = false,
+  headerRight,
+  children,
+}: AccordionSectionProps) {
+  const [open, setOpen] = useState(defaultOpen);
+
+  return (
+    <div style={{ borderTop: "1px solid var(--border-subtle)" }}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "0.5rem",
+          width: "100%",
+          background: "transparent",
+          border: "none",
+          cursor: "pointer",
+          padding: "0.7rem 0",
+          textAlign: "left",
+        }}
+      >
+        <span style={{ color: "var(--text-dim)", display: "flex", flexShrink: 0 }}>
+          {open ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+        </span>
+        {icon && (
+          <span style={{ color: "var(--accent)", display: "flex", flexShrink: 0 }}>
+            {icon}
+          </span>
+        )}
+        <span
+          className="t-label"
+          style={{ color: "var(--accent)", letterSpacing: "0.12em" }}
+        >
+          {label}
+        </span>
+        {count !== undefined && (
+          <span
+            className="t-label"
+            style={{ color: "var(--text-dim)", marginLeft: "0.25rem" }}
+          >
+            {count}
+          </span>
+        )}
+        {headerRight && (
+          <span style={{ marginLeft: "auto" }}>{headerRight}</span>
+        )}
+      </button>
+      {open && <div style={{ paddingBottom: "0.75rem" }}>{children}</div>}
+    </div>
   );
 }
 

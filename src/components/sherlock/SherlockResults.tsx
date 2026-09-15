@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import type { ResultItem } from "@/types/api";
-import { EmptyState, ExternalLinkButton, FilterBar } from "@/components/ui";
+import { EmptyState, ExternalLinkButton, FilterBar, AccordionSection } from "@/components/ui";
 import { useSites } from "@/hooks/useApi";
 import { Search, X } from "lucide-react";
 import { padIndex } from "@/lib/utils";
@@ -17,7 +17,7 @@ export function SherlockResults({ username, results }: SherlockResultsProps) {
   const [activeFilter, setActiveFilter] = useState("ALL");
   const [query, setQuery] = useState("");
 
-  // Build site → category lookup
+  // Build site -> category lookup
   const categoryMap = useMemo(() => {
     const map = new Map<string, string>();
     sitesData?.categories.forEach((cat) => {
@@ -53,12 +53,23 @@ export function SherlockResults({ username, results }: SherlockResultsProps) {
     const cats = Array.from(categoryCounts.entries())
       .sort((a, b) => b[1] - a[1])
       .map(([cat, count]) => ({
-        key:   cat,
+        key: cat,
         label: cat.toUpperCase(),
         count,
       }));
     return [{ key: "ALL", label: "ALL", count: results.length }, ...cats];
   }, [categoryCounts, results.length]);
+
+  // Grouped by category (for ALL view)
+  const grouped = useMemo(() => {
+    const map = new Map<string, ResultItem[]>();
+    enriched.forEach((r) => {
+      const list = map.get(r.category) ?? [];
+      list.push(r);
+      map.set(r.category, list);
+    });
+    return Array.from(map.entries()).sort((a, b) => b[1].length - a[1].length);
+  }, [enriched]);
 
   // Filtered + searched results
   const filtered = useMemo(() => {
@@ -77,10 +88,14 @@ export function SherlockResults({ username, results }: SherlockResultsProps) {
     return list;
   }, [enriched, activeFilter, query]);
 
+  const isSearchMode = query.trim().length > 0;
+  const isSingleCategory = activeFilter !== "ALL";
+  const showAccordionView = !isSearchMode && !isSingleCategory;
+
   return (
     <div className="animate-fade-in">
 
-      {/* ── Results header ── */}
+      {/* -- Results header -- */}
       <div
         style={{
           display:      "flex",
@@ -122,7 +137,7 @@ export function SherlockResults({ username, results }: SherlockResultsProps) {
         />
       ) : (
         <>
-          {/* ── Filter bar ── */}
+          {/* -- Filter bar -- */}
           <div style={{ marginBottom: "1rem" }}>
             <FilterBar
               options={filterOptions}
@@ -135,7 +150,7 @@ export function SherlockResults({ username, results }: SherlockResultsProps) {
             />
           </div>
 
-          {/* ── Search within results ── */}
+          {/* -- Search within results -- */}
           <div
             style={{
               display:      "flex",
@@ -155,7 +170,7 @@ export function SherlockResults({ username, results }: SherlockResultsProps) {
             />
             <input
               type="text"
-              placeholder="Filter results…"
+              placeholder="Filter results..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               aria-label="Filter results by site name or URL"
@@ -190,7 +205,7 @@ export function SherlockResults({ username, results }: SherlockResultsProps) {
             )}
           </div>
 
-          {/* ── Result count after filter ── */}
+          {/* -- Result count after filter -- */}
           {(activeFilter !== "ALL" || query) && (
             <p
               className="t-label"
@@ -200,13 +215,37 @@ export function SherlockResults({ username, results }: SherlockResultsProps) {
             </p>
           )}
 
-          {/* ── Evidence list ── */}
+          {/* -- Results -- */}
           {filtered.length === 0 ? (
             <EmptyState
               title="NO MATCHES"
               description="No results match the current filter."
             />
+          ) : showAccordionView ? (
+            /* Accordion view: grouped by category, collapsed by default */
+            <div>
+              {grouped.map(([category, items]) => (
+                <AccordionSection
+                  key={category}
+                  label={category}
+                  count={items.length}
+                >
+                  <ol style={{ listStyle: "none", padding: 0 }}>
+                    {items.map((result, i) => (
+                      <ResultRow
+                        key={result.url}
+                        index={i + 1}
+                        site={result.site}
+                        url={result.url}
+                        showCategory={false}
+                      />
+                    ))}
+                  </ol>
+                </AccordionSection>
+              ))}
+            </div>
           ) : (
+            /* Flat list: single category or search results */
             <ol
               style={{ listStyle: "none", padding: 0 }}
               aria-label={`${filtered.length} results`}
@@ -217,7 +256,7 @@ export function SherlockResults({ username, results }: SherlockResultsProps) {
                   index={i + 1}
                   site={result.site}
                   url={result.url}
-                  category={result.category}
+                  showCategory={false}
                 />
               ))}
             </ol>
@@ -234,10 +273,10 @@ interface ResultRowProps {
   index: number;
   site: string;
   url: string;
-  category: string;
+  showCategory?: boolean;
 }
 
-function ResultRow({ index, site, url, category }: ResultRowProps) {
+function ResultRow({ index, site, url, showCategory = false }: ResultRowProps) {
   return (
     <li
       className="animate-fade-in-up group"
@@ -245,7 +284,7 @@ function ResultRow({ index, site, url, category }: ResultRowProps) {
         borderTop:   "1px solid var(--border-subtle)",
         padding:     "0.8rem 0",
         display:     "grid",
-        gridTemplateColumns: "2.5rem 1fr auto",
+        gridTemplateColumns: showCategory ? "2.5rem 1fr auto" : "2.5rem 1fr auto",
         gap:         "1rem",
         alignItems:  "center",
         transition:  "background var(--t-fast)",
@@ -292,7 +331,7 @@ function ResultRow({ index, site, url, category }: ResultRowProps) {
         </p>
       </div>
 
-      {/* Category + external link */}
+      {/* External link */}
       <div
         style={{
           display:    "flex",
@@ -301,15 +340,6 @@ function ResultRow({ index, site, url, category }: ResultRowProps) {
           flexShrink: 0,
         }}
       >
-        <span
-          className="t-label sm:block"
-          style={{
-            display:  "none",
-            color:    "var(--text-dim)",
-          }}
-        >
-          {category.toUpperCase()}
-        </span>
         <ExternalLinkButton
           href={url}
           label={`Open ${site} profile`}

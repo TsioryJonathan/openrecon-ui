@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import type { DorkGenerateResponse, DorkCategory, DorkItem } from "@/types/api";
-import { FilterBar, SectionHeader, CopyButton } from "@/components/ui";
+import { FilterBar, CopyButton, AccordionSection } from "@/components/ui";
 import { IconDorks } from "@/lib/icons";
 import { ExternalLink, Copy, Check } from "lucide-react";
 
@@ -63,6 +63,8 @@ export function DorksResults({ data }: DorksResultsProps) {
     [activeFilter, data.categories]
   );
 
+  const isSingleCategory = activeFilter !== "ALL";
+
   return (
     <div className="animate-fade-in">
 
@@ -105,29 +107,38 @@ export function DorksResults({ data }: DorksResultsProps) {
       </div>
 
       {/* ── Category sections ── */}
-      {displayed.map((cat) => (
-        <CategorySection key={cat.name} category={cat} />
-      ))}
+      {isSingleCategory ? (
+        /* Single category: full section with description */
+        displayed.map((cat) => (
+          <CategorySection key={cat.name} category={cat} />
+        ))
+      ) : (
+        /* All categories: accordion view, collapsed by default */
+        displayed.map((cat) => (
+          <AccordionSection
+            key={cat.name}
+            label={cat.name}
+            count={cat.dorks.length}
+            headerRight={
+              <CopyAllButton category={cat} />
+            }
+          >
+            <div>
+              {cat.dorks.map((dork, i) => (
+                <DorkRow key={dork.query} dork={dork} index={i + 1} />
+              ))}
+            </div>
+          </AccordionSection>
+        ))
+      )}
     </div>
   );
 }
 
 // ─── CategorySection ──────────────────────────────────────────────────────────
+// Full section with header, description, and copy all - used for single category view.
 
 function CategorySection({ category }: { category: DorkCategory }) {
-  const [allCopied, setAllCopied] = useState(false);
-
-  async function copyAll() {
-    const all = category.dorks.map((d) => d.query).join("\n");
-    try {
-      await navigator.clipboard.writeText(all);
-      setAllCopied(true);
-      setTimeout(() => setAllCopied(false), 1800);
-    } catch {
-      // clipboard unavailable
-    }
-  }
-
   return (
     <div style={{ marginBottom: "2.5rem" }}>
 
@@ -172,31 +183,7 @@ function CategorySection({ category }: { category: DorkCategory }) {
         </div>
 
         {/* Copy all button */}
-        <button
-          type="button"
-          onClick={copyAll}
-          aria-label={`Copy all ${category.name} queries`}
-          style={{
-            display:       "flex",
-            alignItems:    "center",
-            gap:           "0.4rem",
-            fontFamily:    "var(--font-mono)",
-            fontSize:      "var(--text-2xs)",
-            letterSpacing: "0.1em",
-            textTransform: "uppercase",
-            color:         allCopied ? "var(--accent)" : "var(--text-dim)",
-            border:        "none",
-            background:    "transparent",
-            cursor:        "pointer",
-            transition:    "color var(--t-base)",
-            padding:       "0.25rem 0",
-            flexShrink:    0,
-          }}
-          className="hover:text-[var(--text)]"
-        >
-          {allCopied ? <Check size={11} /> : <Copy size={11} />}
-          {allCopied ? "Copied" : "Copy all"}
-        </button>
+        <CopyAllButton category={category} />
       </div>
 
       {/* Dork rows */}
@@ -206,6 +193,51 @@ function CategorySection({ category }: { category: DorkCategory }) {
         ))}
       </div>
     </div>
+  );
+}
+
+// ─── CopyAllButton ────────────────────────────────────────────────────────────
+
+function CopyAllButton({ category }: { category: DorkCategory }) {
+  const [allCopied, setAllCopied] = useState(false);
+
+  async function copyAll() {
+    const all = category.dorks.map((d) => d.query).join("\n");
+    try {
+      await navigator.clipboard.writeText(all);
+      setAllCopied(true);
+      setTimeout(() => setAllCopied(false), 1800);
+    } catch {
+      // clipboard unavailable
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={copyAll}
+      aria-label={`Copy all ${category.name} queries`}
+      style={{
+        display:       "flex",
+        alignItems:    "center",
+        gap:           "0.4rem",
+        fontFamily:    "var(--font-mono)",
+        fontSize:      "var(--text-2xs)",
+        letterSpacing: "0.1em",
+        textTransform: "uppercase",
+        color:         allCopied ? "var(--accent)" : "var(--text-dim)",
+        border:        "none",
+        background:    "transparent",
+        cursor:        "pointer",
+        transition:    "color var(--t-base)",
+        padding:       "0.25rem 0",
+        flexShrink:    0,
+      }}
+      className="hover:text-[var(--text)]"
+    >
+      {allCopied ? <Check size={11} /> : <Copy size={11} />}
+      {allCopied ? "Copied" : "Copy all"}
+    </button>
   );
 }
 
