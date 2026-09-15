@@ -1,9 +1,11 @@
 "use client";
 
-import { ExternalLink } from "lucide-react";
+import { useState, useMemo } from "react";
 import type { ResultItem } from "@/types/api";
-import { EmptyState } from "@/components/ui";
+import { EmptyState, ExternalLinkButton, FilterBar } from "@/components/ui";
 import { useSites } from "@/hooks/useApi";
+import { Search, X } from "lucide-react";
+import { padIndex } from "@/lib/utils";
 
 interface SherlockResultsProps {
   username: string;
@@ -12,58 +14,101 @@ interface SherlockResultsProps {
 
 export function SherlockResults({ username, results }: SherlockResultsProps) {
   const { data: sitesData } = useSites();
+  const [activeFilter, setActiveFilter] = useState("ALL");
+  const [query, setQuery] = useState("");
 
-  // Build a site→category lookup from the sites API
-  const categoryMap = new Map<string, string>();
-  sitesData?.categories.forEach((cat) => {
-    cat.sites.forEach((site) => {
-      categoryMap.set(site.toLowerCase(), cat.name);
+  // Build site → category lookup
+  const categoryMap = useMemo(() => {
+    const map = new Map<string, string>();
+    sitesData?.categories.forEach((cat) => {
+      cat.sites.forEach((site) => {
+        map.set(site.toLowerCase(), cat.name);
+      });
     });
-  });
+    return map;
+  }, [sitesData]);
 
   function getCategory(site: string): string {
     return categoryMap.get(site.toLowerCase()) ?? "Other";
   }
 
+  // Results enriched with category
+  const enriched = useMemo(
+    () => results.map((r) => ({ ...r, category: getCategory(r.site) })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [results, categoryMap]
+  );
+
+  // Count per category
+  const categoryCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    enriched.forEach(({ category }) => {
+      counts.set(category, (counts.get(category) ?? 0) + 1);
+    });
+    return counts;
+  }, [enriched]);
+
+  // Build filter options from actual results
+  const filterOptions = useMemo(() => {
+    const cats = Array.from(categoryCounts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .map(([cat, count]) => ({
+        key:   cat,
+        label: cat.toUpperCase(),
+        count,
+      }));
+    return [{ key: "ALL", label: "ALL", count: results.length }, ...cats];
+  }, [categoryCounts, results.length]);
+
+  // Filtered + searched results
+  const filtered = useMemo(() => {
+    let list = enriched;
+    if (activeFilter !== "ALL") {
+      list = list.filter((r) => r.category === activeFilter);
+    }
+    const q = query.trim().toLowerCase();
+    if (q) {
+      list = list.filter(
+        (r) =>
+          r.site.toLowerCase().includes(q) ||
+          r.url.toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }, [enriched, activeFilter, query]);
+
   return (
-    <div>
-      {/* Results header */}
+    <div className="animate-fade-in">
+
+      {/* ── Results header ── */}
       <div
         style={{
-          display: "flex",
-          alignItems: "baseline",
-          justifyContent: "space-between",
+          display:      "flex",
+          alignItems:   "baseline",
+          gap:          "1rem",
           marginBottom: "1.5rem",
-          flexWrap: "wrap",
-          gap: "0.5rem",
+          flexWrap:     "wrap",
+          justifyContent: "space-between",
         }}
       >
-        <div style={{ display: "flex", alignItems: "baseline", gap: "1rem" }}>
-          <p
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "0.65rem",
-              letterSpacing: "0.12em",
-              color: "var(--text-dim)",
-            }}
-          >
-            SEARCH RESULTS
-          </p>
+        <div style={{ display: "flex", alignItems: "baseline", gap: "0.875rem" }}>
+          <p className="t-label">SEARCH RESULTS</p>
           <span
+            className="t-mono"
             style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "0.75rem",
-              color: results.length > 0 ? "var(--accent)" : "var(--text-dim)",
+              fontSize:  "var(--text-xs)",
+              color:     results.length > 0 ? "var(--accent)" : "var(--text-dim)",
+              fontWeight: 600,
             }}
           >
-            {results.length} found
+            {results.length} FOUND
           </span>
         </div>
         <span
+          className="t-mono"
           style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "0.75rem",
-            color: "var(--text-muted)",
+            fontSize: "var(--text-xs)",
+            color:    "var(--text-muted)",
           }}
         >
           @{username}
@@ -72,120 +117,204 @@ export function SherlockResults({ username, results }: SherlockResultsProps) {
 
       {results.length === 0 ? (
         <EmptyState
-          title="NO RESULTS"
-          description={`No accounts were found for @${username} on the selected platforms.`}
+          title="NO MATCHES"
+          description={`No results were found across the selected platforms for @${username}.`}
         />
       ) : (
-        <ol
-          style={{ listStyle: "none", padding: 0 }}
-          aria-label={`${results.length} accounts found for ${username}`}
-        >
-          {results.map((result, i) => (
-            <ResultRow
-              key={result.url}
-              index={i + 1}
-              result={result}
-              category={getCategory(result.site)}
+        <>
+          {/* ── Filter bar ── */}
+          <div style={{ marginBottom: "1rem" }}>
+            <FilterBar
+              options={filterOptions}
+              active={activeFilter}
+              onChange={(k) => {
+                setActiveFilter(k);
+                setQuery("");
+              }}
+              ariaLabel="Filter results by category"
             />
-          ))}
-        </ol>
+          </div>
+
+          {/* ── Search within results ── */}
+          <div
+            style={{
+              display:      "flex",
+              alignItems:   "center",
+              gap:          "0.5rem",
+              border:       "1px solid var(--border-subtle)",
+              background:   "var(--surface)",
+              padding:      "0 0.875rem",
+              marginBottom: "1.25rem",
+              maxWidth:     "320px",
+            }}
+          >
+            <Search
+              size={12}
+              style={{ color: "var(--text-dim)", flexShrink: 0 }}
+              aria-hidden="true"
+            />
+            <input
+              type="text"
+              placeholder="Filter results…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              aria-label="Filter results by site name or URL"
+              style={{
+                background: "transparent",
+                border:     "none",
+                outline:    "none",
+                fontFamily: "var(--font-mono)",
+                fontSize:   "var(--text-xs)",
+                color:      "var(--text)",
+                height:     "34px",
+                width:      "100%",
+              }}
+            />
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                aria-label="Clear filter"
+                style={{
+                  background: "transparent",
+                  border:     "none",
+                  cursor:     "pointer",
+                  color:      "var(--text-dim)",
+                  display:    "flex",
+                  padding:    0,
+                  flexShrink: 0,
+                }}
+              >
+                <X size={11} />
+              </button>
+            )}
+          </div>
+
+          {/* ── Result count after filter ── */}
+          {(activeFilter !== "ALL" || query) && (
+            <p
+              className="t-label"
+              style={{ color: "var(--text-dim)", marginBottom: "0.75rem" }}
+            >
+              {filtered.length} of {results.length} results
+            </p>
+          )}
+
+          {/* ── Evidence list ── */}
+          {filtered.length === 0 ? (
+            <EmptyState
+              title="NO MATCHES"
+              description="No results match the current filter."
+            />
+          ) : (
+            <ol
+              style={{ listStyle: "none", padding: 0 }}
+              aria-label={`${filtered.length} results`}
+            >
+              {filtered.map((result, i) => (
+                <ResultRow
+                  key={result.url}
+                  index={i + 1}
+                  site={result.site}
+                  url={result.url}
+                  category={result.category}
+                />
+              ))}
+            </ol>
+          )}
+        </>
       )}
     </div>
   );
 }
 
+// ─── ResultRow ────────────────────────────────────────────────────────────────
+
 interface ResultRowProps {
   index: number;
-  result: ResultItem;
+  site: string;
+  url: string;
   category: string;
 }
 
-function ResultRow({ index, result, category }: ResultRowProps) {
+function ResultRow({ index, site, url, category }: ResultRowProps) {
   return (
     <li
-      style={{
-        borderTop: "1px solid var(--border-subtle)",
-        padding: "0.875rem 0",
-        display: "grid",
-        gridTemplateColumns: "2.5rem 1fr auto",
-        gap: "1rem",
-        alignItems: "center",
-      }}
       className="animate-fade-in-up group"
+      style={{
+        borderTop:   "1px solid var(--border-subtle)",
+        padding:     "0.8rem 0",
+        display:     "grid",
+        gridTemplateColumns: "2.5rem 1fr auto",
+        gap:         "1rem",
+        alignItems:  "center",
+        transition:  "background var(--t-fast)",
+      }}
     >
       {/* Index */}
       <span
+        className="t-mono"
         style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: "0.65rem",
-          color: "var(--text-dim)",
+          fontSize:   "var(--text-2xs)",
+          color:      "var(--text-dim)",
           userSelect: "none",
+          lineHeight: 1,
         }}
       >
-        {String(index).padStart(2, "0")}
+        {padIndex(index)}
       </span>
 
       {/* Site + URL */}
       <div style={{ minWidth: 0 }}>
         <p
           style={{
-            color: "var(--text)",
-            fontSize: "0.875rem",
-            fontWeight: 400,
-            marginBottom: "0.15rem",
+            fontFamily:   "var(--font-display)",
+            fontSize:     "var(--text-sm)",
+            fontWeight:   500,
+            color:        "var(--text)",
+            marginBottom: "0.2rem",
+            letterSpacing: "-0.01em",
           }}
         >
-          {result.site}
+          {site}
         </p>
         <p
+          className="t-mono"
           style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "0.72rem",
-            color: "var(--text-dim)",
-            overflow: "hidden",
+            fontSize:     "var(--text-2xs)",
+            color:        "var(--text-dim)",
+            overflow:     "hidden",
             textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
+            whiteSpace:   "nowrap",
           }}
         >
-          {result.url}
+          {url}
         </p>
       </div>
 
-      {/* Category + link */}
+      {/* Category + external link */}
       <div
         style={{
-          display: "flex",
+          display:    "flex",
           alignItems: "center",
-          gap: "1rem",
+          gap:        "0.875rem",
           flexShrink: 0,
         }}
       >
         <span
+          className="t-label sm:block"
           style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "0.6rem",
-            letterSpacing: "0.08em",
-            color: "var(--text-dim)",
-            textTransform: "uppercase",
-            display: "none",
+            display:  "none",
+            color:    "var(--text-dim)",
           }}
-          className="sm:block"
         >
-          {category}
+          {category.toUpperCase()}
         </span>
-        <a
-          href={result.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label={`Open ${result.site} profile`}
-          style={{
-            color: "var(--text-dim)",
-            transition: "color 0.12s",
-          }}
-          className="hover:text-[var(--accent)]"
-        >
-          <ExternalLink size={14} />
-        </a>
+        <ExternalLinkButton
+          href={url}
+          label={`Open ${site} profile`}
+          size={14}
+        />
       </div>
     </li>
   );
