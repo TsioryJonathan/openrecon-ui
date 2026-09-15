@@ -118,7 +118,7 @@ export function DomainResults({ query, data }: DomainResultsProps) {
       {data.subdomains && data.subdomains.length > 0 && (
         <>
           <Divider />
-          <Section label={`SUBDOMAINS — ${data.subdomains.length} found`}>
+          <Section label={`SUBDOMAINS - ${data.subdomains.length} found`}>
             <div
               style={{
                 display: "grid",
@@ -189,7 +189,7 @@ function RecordList({
           color: "var(--text-dim)",
         }}
       >
-        {emptyText ?? "—"}
+        {emptyText ?? "-"}
       </p>
     );
   }

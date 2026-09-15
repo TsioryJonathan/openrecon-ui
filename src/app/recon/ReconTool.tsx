@@ -30,7 +30,7 @@ export function ReconTool() {
     <ToolPage
       eyebrow="RECON"
       title="Network intelligence"
-      description="Investigate an IP address or domain — geolocation, ISP, ASN, DNS records, subdomains."
+      description="Investigate an IP address or domain - geolocation, ISP, ASN, DNS records, subdomains."
     >
       {/* Form */}
       <form onSubmit={handleSubmit}>
@@ -97,7 +97,7 @@ export function ReconTool() {
                 animation: "scan-pulse 1.5s ease-in-out infinite",
               }}
             >
-              Analysing target — gathering intelligence…
+              Analysing target - gathering intelligence…
             </p>
           )}
 

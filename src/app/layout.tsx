@@ -5,7 +5,7 @@ import "./globals.css";
 import { QueryProvider } from "@/components/layout/QueryProvider";
 import { Header } from "@/components/layout/Header";
 
-// JetBrains Mono — self-hosted via @fontsource-variable/jetbrains-mono
+// JetBrains Mono - self-hosted via @fontsource-variable/jetbrains-mono
 const jetbrainsMono = localFont({
   src: [
     {
@@ -26,8 +26,8 @@ const jetbrainsMono = localFont({
 
 export const metadata: Metadata = {
   title: {
-    template: "%s — OpenRecon",
-    default: "OpenRecon — Digital intelligence, organized.",
+    template: "%s - OpenRecon",
+    default: "OpenRecon - Digital intelligence, organized.",
   },
   description:
     "A focused suite of instruments for digital reconnaissance, investigation and evidence discovery.",

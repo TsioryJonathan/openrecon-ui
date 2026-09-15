@@ -107,7 +107,7 @@ export function ExifTool() {
                 animation: "scan-pulse 1.5s ease-in-out infinite",
               }}
             >
-              Extracting metadata — running exiftool…
+              Extracting metadata - running exiftool…
             </p>
           )}
 

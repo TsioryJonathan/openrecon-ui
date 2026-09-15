@@ -104,7 +104,7 @@ export function Header() {
           {/* ── Logo ── */}
           <Link
             href="/"
-            aria-label="OpenRecon — home"
+            aria-label="OpenRecon - home"
             style={{
               display:    "flex",
               alignItems: "center",

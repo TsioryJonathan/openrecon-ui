@@ -174,7 +174,7 @@ export function DataField({
   children,
   size = "md",
 }: DataFieldProps) {
-  const displayValue = children ?? (value === null || value === undefined ? "—" : String(value));
+  const displayValue = children ?? (value === null || value === undefined ? "-" : String(value));
   const isEmpty = !children && (value === null || value === undefined);
 
   const valueSizes = {
@@ -317,7 +317,7 @@ export function SkeletonLine({ width = "100%", height = "12px" }: { width?: stri
 }
 
 // ─── ActionButton ─────────────────────────────────────────────────────────────
-// Primary CTA button — amber fill.
+// Primary CTA button - amber fill.
 
 interface ActionButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   loading?: boolean;
@@ -607,7 +607,7 @@ export function StatusIndicator({
   value,
   trueLabel = "YES",
   falseLabel = "NO",
-  nullLabel = "—",
+  nullLabel = "-",
 }: StatusIndicatorProps) {
   if (value === null || value === undefined) {
     return (
@@ -632,7 +632,7 @@ export function StatusIndicator({
 }
 
 // ─── FilterBar ────────────────────────────────────────────────────────────────
-// Horizontal scrollable filter pills — used in Sherlock, Dorks, etc.
+// Horizontal scrollable filter pills - used in Sherlock, Dorks, etc.
 
 interface FilterOption {
   key: string;

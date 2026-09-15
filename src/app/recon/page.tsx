@@ -3,7 +3,7 @@ import { ReconTool } from "./ReconTool";
 
 export const metadata: Metadata = {
   title: "Recon",
-  description: "IP address and domain intelligence — geolocation, ASN, DNS, subdomains.",
+  description: "IP address and domain intelligence - geolocation, ASN, DNS, subdomains.",
 };
 
 export default function ReconPage() {

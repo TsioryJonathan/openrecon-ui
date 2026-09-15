@@ -124,7 +124,7 @@ body {
 
 /* ─── Typography utilities ───────────────────────────────────────────────────── */
 
-/* Display — Plus Jakarta Sans (Cabinet Grotesk equivalent) */
+/* Display - Plus Jakarta Sans (Cabinet Grotesk equivalent) */
 .t-display {
   font-family: var(--font-display);
   font-weight: 700;
@@ -133,7 +133,7 @@ body {
   color: var(--text);
 }
 
-/* Body — DM Sans (Satoshi equivalent) */
+/* Body - DM Sans (Satoshi equivalent) */
 .t-body {
   font-family: var(--font-body);
   font-weight: 400;
@@ -141,21 +141,21 @@ body {
   color: var(--text-muted);
 }
 
-/* Editorial — Fraunces (accent only) */
+/* Editorial - Fraunces (accent only) */
 .t-editorial {
   font-family: var(--font-editorial);
   font-style: italic;
   font-weight: 400;
 }
 
-/* Technical — JetBrains Mono */
+/* Technical - JetBrains Mono */
 .t-mono {
   font-family: var(--font-mono);
   font-feature-settings: "liga" 0;
   font-variant-ligatures: none;
 }
 
-/* Label — small uppercase tracking */
+/* Label - small uppercase tracking */
 .t-label {
   font-family: var(--font-mono);
   font-size: var(--text-2xs);

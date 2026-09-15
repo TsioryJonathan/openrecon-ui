@@ -524,7 +524,7 @@ const PlatformDialog = ({
                     padding: "0.625rem 0.875rem",
                   }}
                 >
-                  +{overflow} more — refine your search
+                  +{overflow} more - refine your search
                 </p>
               )}
             </>
@@ -572,7 +572,7 @@ function CategoryTab({
       role="tab"
       aria-selected={active}
     >
-      {/* Label — click to view */}
+      {/* Label - click to view */}
       <button
         type="button"
         onClick={onClick}

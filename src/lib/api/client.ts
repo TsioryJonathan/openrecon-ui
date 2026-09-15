@@ -83,7 +83,7 @@ export async function extractExif(file: File): Promise<ExifResponse> {
   const res = await fetch(`${BASE_URL}/api/exif/extract`, {
     method: "POST",
     body: formData,
-    // Do NOT set Content-Type header — browser sets it with boundary
+    // Do NOT set Content-Type header - browser sets it with boundary
   });
 
   if (!res.ok) {

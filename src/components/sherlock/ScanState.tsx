@@ -66,7 +66,7 @@ export function ScanState({ username }: ScanStateProps) {
           color: "var(--text-dim)",
         }}
       >
-        Scanning 480+ platforms — this may take a moment.
+        Scanning 480+ platforms - this may take a moment.
       </p>
     </div>
   );

@@ -106,7 +106,7 @@ export default function HomePage() {
           }}
         />
 
-        {/* Content — anchored to bottom */}
+        {/* Content - anchored to bottom */}
         <div
           style={{
             position: "relative",
@@ -152,7 +152,7 @@ export default function HomePage() {
               maxWidth:     "16ch",
             }}
           >
-            {/* "Digital intelligence," — display font */}
+            {/* "Digital intelligence," - display font */}
             <span
               style={{
                 display:       "block",
@@ -166,7 +166,7 @@ export default function HomePage() {
             >
               Digital intelligence,
             </span>
-            {/* "organized." — Fraunces italic accent */}
+            {/* "organized." - Fraunces italic accent */}
             <span
               style={{
                 display:    "block",
@@ -266,7 +266,7 @@ export default function HomePage() {
                   transition:     "background var(--t-base)",
                 }}
                 className="group"
-                aria-label={`${id} — ${label}`}
+                aria-label={`${id} - ${label}`}
               >
                 {/* Index number */}
                 <span
