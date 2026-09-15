@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import {
@@ -112,19 +113,14 @@ export function Header() {
               flexShrink: 0,
             }}
           >
-            <OpenReconLogo />
-            <span
-              style={{
-                fontFamily:    "var(--font-display)",
-                fontSize:      "0.8125rem",
-                fontWeight:    700,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-                color:         "var(--text)",
-              }}
-            >
-              OpenRecon
-            </span>
+            <Image
+              src="/logos/logo-hero.png"
+              alt="OpenRecon"
+              width={120}
+              height={40}
+              style={{ height: "28px", width: "auto" }}
+              priority
+            />
           </Link>
 
           {/* ── Desktop nav ── */}
@@ -319,39 +315,3 @@ export function Header() {
   );
 }
 
-// ─── Logo SVG ─────────────────────────────────────────────────────────────────
-
-function OpenReconLogo() {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 20 20"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-    >
-      {/* Outer ring */}
-      <circle
-        cx="10"
-        cy="10"
-        r="8"
-        stroke="var(--accent)"
-        strokeWidth="1.25"
-      />
-      {/* Inner circle */}
-      <circle
-        cx="10"
-        cy="10"
-        r="2.75"
-        stroke="var(--accent)"
-        strokeWidth="1.25"
-      />
-      {/* Cross hairs */}
-      <line x1="10" y1="2"   x2="10" y2="5.25"  stroke="var(--accent)" strokeWidth="1.25" strokeLinecap="round" />
-      <line x1="10" y1="14.75" x2="10" y2="18"  stroke="var(--accent)" strokeWidth="1.25" strokeLinecap="round" />
-      <line x1="2"   y1="10" x2="5.25" y2="10"  stroke="var(--accent)" strokeWidth="1.25" strokeLinecap="round" />
-      <line x1="14.75" y1="10" x2="18" y2="10"  stroke="var(--accent)" strokeWidth="1.25" strokeLinecap="round" />
-    </svg>
-  );
-}
