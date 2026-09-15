@@ -2,157 +2,356 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { Menu, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useState, useEffect } from "react";
+import {
+  IconSherlock,
+  IconRecon,
+  IconExif,
+  IconDorks,
+  IconClose,
+  IconMenu,
+} from "@/lib/icons";
+
+// ─── Nav items with icons and descriptions ────────────────────────────────────
 
 const NAV_ITEMS = [
-  { label: "Sherlock", href: "/sherlock" },
-  { label: "Recon", href: "/recon" },
-  { label: "EXIF", href: "/exif" },
-  { label: "Dorks", href: "/dorks" },
+  {
+    label:       "Sherlock",
+    href:        "/sherlock",
+    Icon:        IconSherlock,
+    description: "Username reconnaissance",
+    index:       "01",
+  },
+  {
+    label:       "Recon",
+    href:        "/recon",
+    Icon:        IconRecon,
+    description: "Network intelligence",
+    index:       "02",
+  },
+  {
+    label:       "EXIF",
+    href:        "/exif",
+    Icon:        IconExif,
+    description: "Metadata forensics",
+    index:       "03",
+  },
+  {
+    label:       "Dorks",
+    href:        "/dorks",
+    Icon:        IconDorks,
+    description: "Search intelligence",
+    index:       "04",
+  },
 ] as const;
+
+// ─── Header ───────────────────────────────────────────────────────────────────
 
 export function Header() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
-  const isActive = (href: string) => pathname.startsWith(href);
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
+  // Slightly increase border opacity when scrolled
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Lock body scroll when mobile menu open
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [mobileOpen]);
+
+  const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
 
   return (
-    <header
-      style={{
-        borderBottom: "1px solid var(--border-subtle)",
-        background: "rgba(9,9,11,0.92)",
-        backdropFilter: "blur(12px)",
-        WebkitBackdropFilter: "blur(12px)",
-      }}
-      className="fixed top-0 left-0 right-0 z-50"
-    >
-      <div className="max-w-7xl mx-auto px-5 md:px-8 h-14 flex items-center justify-between">
-        {/* Logo */}
-        <Link
-          href="/"
-          className="flex items-center gap-2.5 group"
-          aria-label="OpenRecon home"
+    <>
+      <header
+        style={{
+          position:         "fixed",
+          top:              0,
+          left:             0,
+          right:            0,
+          zIndex:           50,
+          background:       "rgba(9,9,11,0.88)",
+          backdropFilter:   "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+          borderBottom:     scrolled
+            ? "1px solid var(--border-subtle)"
+            : "1px solid transparent",
+          transition:       "border-color 0.2s ease",
+        }}
+      >
+        <div
+          style={{
+            maxWidth:       "72rem",
+            margin:         "0 auto",
+            padding:        "0 2rem",
+            height:         "56px",
+            display:        "flex",
+            alignItems:     "center",
+            justifyContent: "space-between",
+          }}
         >
-          <OpenReconLogo />
-          <span
-            style={{ color: "var(--text)", letterSpacing: "0.08em" }}
-            className="text-sm font-medium uppercase hidden sm:block"
+          {/* ── Logo ── */}
+          <Link
+            href="/"
+            aria-label="OpenRecon — home"
+            style={{
+              display:    "flex",
+              alignItems: "center",
+              gap:        "0.625rem",
+              flexShrink: 0,
+            }}
           >
-            OpenRecon
-          </span>
-        </Link>
-
-        {/* Desktop nav */}
-        <nav
-          className="hidden md:flex items-center gap-1"
-          aria-label="Main navigation"
-        >
-          {NAV_ITEMS.map(({ label, href }) => (
-            <Link
-              key={href}
-              href={href}
+            <OpenReconLogo />
+            <span
               style={{
-                color: isActive(href) ? "var(--accent)" : "var(--text-muted)",
-                borderBottom: isActive(href)
-                  ? "1px solid var(--accent)"
-                  : "1px solid transparent",
-                paddingBottom: "1px",
+                fontFamily:    "var(--font-display)",
+                fontSize:      "0.8125rem",
+                fontWeight:    700,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                color:         "var(--text)",
               }}
-              className="px-3 py-1.5 text-sm tracking-wide transition-colors hover:text-[var(--text)]"
             >
-              {label}
-            </Link>
-          ))}
-        </nav>
+              OpenRecon
+            </span>
+          </Link>
 
-        {/* Mobile toggle */}
-        <button
-          className="md:hidden p-2 text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
-          onClick={() => setMobileOpen(!mobileOpen)}
-          aria-label={mobileOpen ? "Close menu" : "Open menu"}
-          aria-expanded={mobileOpen}
-        >
-          {mobileOpen ? <X size={18} /> : <Menu size={18} />}
-        </button>
-      </div>
+          {/* ── Desktop nav ── */}
+          <nav
+            aria-label="Main navigation"
+            style={{ display: "flex", alignItems: "center", gap: "0.125rem" }}
+            className="hidden md:flex"
+          >
+            {NAV_ITEMS.map(({ label, href, Icon }) => {
+              const active = isActive(href);
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  style={{
+                    display:       "flex",
+                    alignItems:    "center",
+                    gap:           "0.4rem",
+                    padding:       "0.4rem 0.75rem",
+                    fontFamily:    "var(--font-display)",
+                    fontSize:      "0.75rem",
+                    fontWeight:    active ? 600 : 500,
+                    letterSpacing: "0.01em",
+                    color:         active ? "var(--accent)" : "var(--text-muted)",
+                    position:      "relative",
+                    transition:    "color 0.15s ease",
+                    textDecoration: "none",
+                  }}
+                  className="group hover:text-[var(--text)]"
+                  aria-current={active ? "page" : undefined}
+                >
+                  {/* Active indicator dot */}
+                  {active && (
+                    <span
+                      style={{
+                        width:        "4px",
+                        height:       "4px",
+                        borderRadius: "50%",
+                        background:   "var(--accent)",
+                        flexShrink:   0,
+                        marginRight:  "0.1rem",
+                      }}
+                      aria-hidden="true"
+                    />
+                  )}
+                  <Icon
+                    size={13}
+                    style={{
+                      opacity:    active ? 1 : 0.6,
+                      transition: "opacity 0.15s ease",
+                      flexShrink: 0,
+                    }}
+                  />
+                  {label}
+                  {/* Bottom border on active */}
+                  {active && (
+                    <span
+                      style={{
+                        position:   "absolute",
+                        bottom:     0,
+                        left:       "0.75rem",
+                        right:      "0.75rem",
+                        height:     "1px",
+                        background: "var(--accent)",
+                        opacity:    0.6,
+                      }}
+                      aria-hidden="true"
+                    />
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
 
-      {/* Mobile nav */}
+          {/* ── Mobile toggle ── */}
+          <button
+            onClick={() => setMobileOpen((v) => !v)}
+            aria-label={mobileOpen ? "Close navigation" : "Open navigation"}
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-nav"
+            style={{
+              display:    "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "transparent",
+              border:     "none",
+              color:      "var(--text-muted)",
+              padding:    "0.375rem",
+              cursor:     "pointer",
+              transition: "color 0.15s ease",
+            }}
+            className="md:hidden hover:text-[var(--text)]"
+          >
+            {mobileOpen ? <IconClose size={18} /> : <IconMenu size={18} />}
+          </button>
+        </div>
+      </header>
+
+      {/* ── Mobile nav overlay ── */}
       {mobileOpen && (
-        <nav
-          style={{ borderTop: "1px solid var(--border-subtle)" }}
-          className="md:hidden bg-[var(--bg)] px-5 py-3"
-          aria-label="Mobile navigation"
+        <div
+          id="mobile-nav"
+          role="dialog"
+          aria-label="Navigation"
+          aria-modal="true"
+          style={{
+            position:   "fixed",
+            inset:      0,
+            zIndex:     49,
+            top:        "56px",
+            background: "var(--bg)",
+            padding:    "0 2rem 2rem",
+            overflowY:  "auto",
+          }}
+          className="md:hidden animate-fade-in"
         >
-          {NAV_ITEMS.map(({ label, href }) => (
-            <Link
-              key={href}
-              href={href}
-              onClick={() => setMobileOpen(false)}
-              style={{
-                color: isActive(href) ? "var(--accent)" : "var(--text-muted)",
-              }}
-              className="block py-3 text-sm tracking-wide border-b border-[var(--border-subtle)] last:border-0 hover:text-[var(--text)] transition-colors"
-            >
-              {label}
-            </Link>
-          ))}
-        </nav>
+          {/* Divider */}
+          <div style={{ borderTop: "1px solid var(--border-subtle)", marginBottom: "0.5rem" }} />
+
+          <nav aria-label="Mobile navigation">
+            {NAV_ITEMS.map(({ label, href, Icon, description, index }) => {
+              const active = isActive(href);
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  style={{
+                    display:        "grid",
+                    gridTemplateColumns: "2.5rem 1fr auto",
+                    alignItems:     "center",
+                    gap:            "1rem",
+                    padding:        "1.125rem 0",
+                    borderBottom:   "1px solid var(--border-subtle)",
+                    textDecoration: "none",
+                    transition:     "background 0.12s ease",
+                  }}
+                  aria-current={active ? "page" : undefined}
+                >
+                  {/* Index */}
+                  <span
+                    style={{
+                      fontFamily:    "var(--font-mono)",
+                      fontSize:      "0.625rem",
+                      letterSpacing: "0.1em",
+                      color:         active ? "var(--accent)" : "var(--text-dim)",
+                    }}
+                  >
+                    {index}
+                  </span>
+
+                  {/* Label + description */}
+                  <div>
+                    <p
+                      style={{
+                        fontFamily:    "var(--font-display)",
+                        fontSize:      "0.9375rem",
+                        fontWeight:    active ? 600 : 500,
+                        color:         active ? "var(--accent)" : "var(--text)",
+                        letterSpacing: "-0.01em",
+                        marginBottom:  "0.2rem",
+                      }}
+                    >
+                      {label.toUpperCase()}
+                    </p>
+                    <p
+                      style={{
+                        fontFamily: "var(--font-body)",
+                        fontSize:   "0.75rem",
+                        color:      "var(--text-dim)",
+                      }}
+                    >
+                      {description}
+                    </p>
+                  </div>
+
+                  {/* Icon */}
+                  <Icon
+                    size={16}
+                    style={{
+                      color:   active ? "var(--accent)" : "var(--text-dim)",
+                      opacity: active ? 1 : 0.5,
+                    }}
+                    aria-hidden="true"
+                  />
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
       )}
-    </header>
+    </>
   );
 }
+
+// ─── Logo SVG ─────────────────────────────────────────────────────────────────
 
 function OpenReconLogo() {
   return (
     <svg
-      width="22"
-      height="22"
-      viewBox="0 0 22 22"
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
     >
-      <circle cx="11" cy="11" r="8.5" stroke="var(--accent)" strokeWidth="1.2" />
-      <circle cx="11" cy="11" r="3.5" stroke="var(--accent)" strokeWidth="1.2" />
-      <line
-        x1="11"
-        y1="2.5"
-        x2="11"
-        y2="5"
+      {/* Outer ring */}
+      <circle
+        cx="10"
+        cy="10"
+        r="8"
         stroke="var(--accent)"
-        strokeWidth="1.2"
-        strokeLinecap="round"
+        strokeWidth="1.25"
       />
-      <line
-        x1="11"
-        y1="17"
-        x2="11"
-        y2="19.5"
+      {/* Inner circle */}
+      <circle
+        cx="10"
+        cy="10"
+        r="2.75"
         stroke="var(--accent)"
-        strokeWidth="1.2"
-        strokeLinecap="round"
+        strokeWidth="1.25"
       />
-      <line
-        x1="2.5"
-        y1="11"
-        x2="5"
-        y2="11"
-        stroke="var(--accent)"
-        strokeWidth="1.2"
-        strokeLinecap="round"
-      />
-      <line
-        x1="17"
-        y1="11"
-        x2="19.5"
-        y2="11"
-        stroke="var(--accent)"
-        strokeWidth="1.2"
-        strokeLinecap="round"
-      />
+      {/* Cross hairs */}
+      <line x1="10" y1="2"   x2="10" y2="5.25"  stroke="var(--accent)" strokeWidth="1.25" strokeLinecap="round" />
+      <line x1="10" y1="14.75" x2="10" y2="18"  stroke="var(--accent)" strokeWidth="1.25" strokeLinecap="round" />
+      <line x1="2"   y1="10" x2="5.25" y2="10"  stroke="var(--accent)" strokeWidth="1.25" strokeLinecap="round" />
+      <line x1="14.75" y1="10" x2="18" y2="10"  stroke="var(--accent)" strokeWidth="1.25" strokeLinecap="round" />
     </svg>
   );
 }
