@@ -1,9 +1,28 @@
 import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
-import { GeistMono } from "geist/font/mono";
+import localFont from "next/font/local";
 import "./globals.css";
 import { QueryProvider } from "@/components/layout/QueryProvider";
 import { Header } from "@/components/layout/Header";
+
+// JetBrains Mono — self-hosted via @fontsource-variable/jetbrains-mono
+const jetbrainsMono = localFont({
+  src: [
+    {
+      path: "../../node_modules/@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2",
+      style: "normal",
+      weight: "100 900",
+    },
+    {
+      path: "../../node_modules/@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-italic.woff2",
+      style: "italic",
+      weight: "100 900",
+    },
+  ],
+  variable: "--font-jetbrains-mono",
+  display: "swap",
+  preload: true,
+});
 
 export const metadata: Metadata = {
   title: {
@@ -11,7 +30,7 @@ export const metadata: Metadata = {
     default: "OpenRecon — Digital intelligence, organized.",
   },
   description:
-    "A suite of instruments for digital reconnaissance. Username scanning, IP/domain intelligence, EXIF metadata extraction, and search operators.",
+    "A focused suite of instruments for digital reconnaissance, investigation and evidence discovery.",
   openGraph: {
     title: "OpenRecon",
     description: "Digital intelligence, organized.",
@@ -25,7 +44,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
+    <html
+      lang="en"
+      className={`${GeistSans.variable} ${jetbrainsMono.variable}`}
+    >
       <body>
         <QueryProvider>
           <Header />

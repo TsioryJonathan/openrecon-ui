@@ -1,11 +1,17 @@
 import { cn } from "@/lib/utils";
+import { AlertCircle, RotateCcw } from "lucide-react";
+import type { ReactNode, ButtonHTMLAttributes, InputHTMLAttributes } from "react";
+
+// ─── ToolPage ────────────────────────────────────────────────────────────────
+// Main wrapper for every instrument page.
 
 interface ToolPageProps {
-  eyebrow: string;
-  title: string;
+  eyebrow: string;           // e.g. "SHERLOCK / IDENTITY"
+  title: string;             // e.g. "Username reconnaissance"
   description: string;
-  children: React.ReactNode;
-  actions?: React.ReactNode;
+  icon?: ReactNode;
+  children: ReactNode;
+  actions?: ReactNode;
   className?: string;
 }
 
@@ -13,138 +19,189 @@ export function ToolPage({
   eyebrow,
   title,
   description,
+  icon,
   children,
   actions,
   className,
 }: ToolPageProps) {
   return (
     <div
+      className={cn(className)}
       style={{
         minHeight: "100vh",
-        paddingTop: "7rem",
-        paddingBottom: "5rem",
         maxWidth: "72rem",
         margin: "0 auto",
-        padding: "7rem 2rem 5rem",
+        padding: "6.5rem 2rem 5rem",
       }}
-      className={cn(className)}
     >
-      {/* Tool header */}
-      <div
-        style={{
-          marginBottom: "3rem",
-          display: "flex",
-          flexDirection: "column",
-          gap: "0.5rem",
-        }}
-      >
-        <p
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "0.65rem",
-            letterSpacing: "0.14em",
-            color: "var(--accent)",
-          }}
-        >
+      {/* Header */}
+      <header style={{ marginBottom: "2.5rem" }}>
+        {/* Eyebrow */}
+        <p className="t-label" style={{ marginBottom: "1.25rem", color: "var(--accent)" }}>
           {eyebrow}
         </p>
+
+        {/* Title row */}
         <div
           style={{
             display: "flex",
-            alignItems: "flex-end",
+            alignItems: "flex-start",
             justifyContent: "space-between",
+            gap: "1.5rem",
             flexWrap: "wrap",
-            gap: "1rem",
           }}
         >
-          <div>
-            <h1
-              style={{
-                fontSize: "clamp(1.5rem, 4vw, 2.25rem)",
-                fontWeight: 300,
-                letterSpacing: "-0.02em",
-                color: "var(--text)",
-                lineHeight: 1.1,
-                marginBottom: "0.5rem",
-              }}
-            >
-              {title}
-            </h1>
-            <p
-              style={{
-                color: "var(--text-muted)",
-                fontSize: "0.875rem",
-                lineHeight: 1.6,
-                maxWidth: "52ch",
-              }}
-            >
-              {description}
-            </p>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.875rem" }}>
+            {icon && (
+              <span style={{ color: "var(--text-dim)", flexShrink: 0, marginTop: "2px" }}>
+                {icon}
+              </span>
+            )}
+            <div>
+              <h1
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontSize: "clamp(1.4rem, 3.5vw, 2rem)",
+                  fontWeight: 600,
+                  letterSpacing: "-0.025em",
+                  color: "var(--text)",
+                  lineHeight: 1.1,
+                  marginBottom: "0.5rem",
+                }}
+              >
+                {title}
+              </h1>
+              <p
+                style={{
+                  fontFamily: "var(--font-body)",
+                  color: "var(--text-muted)",
+                  fontSize: "var(--text-sm)",
+                  lineHeight: 1.65,
+                  maxWidth: "56ch",
+                }}
+              >
+                {description}
+              </p>
+            </div>
           </div>
-          {actions && <div>{actions}</div>}
+
+          {actions && (
+            <div style={{ flexShrink: 0, paddingTop: "0.25rem" }}>
+              {actions}
+            </div>
+          )}
         </div>
-      </div>
+      </header>
 
-      <div style={{ borderTop: "1px solid var(--border-subtle)", marginBottom: "2.5rem" }} />
+      {/* Separator */}
+      <div className="divider" style={{ marginBottom: "2.5rem" }} />
 
+      {/* Content */}
       {children}
     </div>
   );
 }
 
-// ─── Section divider ──────────────────────────────────────────────────────────
+// ─── SectionHeader ───────────────────────────────────────────────────────────
+// Label for a data section within a result panel.
 
-export function Divider({ className }: { className?: string }) {
+interface SectionHeaderProps {
+  label: string;
+  count?: number;
+  icon?: ReactNode;
+  action?: ReactNode;
+}
+
+export function SectionHeader({ label, count, icon, action }: SectionHeaderProps) {
   return (
     <div
-      style={{ borderTop: "1px solid var(--border-subtle)" }}
-      className={cn("my-6", className)}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        marginBottom: "1rem",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+        {icon && (
+          <span style={{ color: "var(--text-dim)" }}>{icon}</span>
+        )}
+        <p className="t-label">{label}</p>
+        {count !== undefined && (
+          <span
+            className="t-mono"
+            style={{
+              fontSize: "var(--text-2xs)",
+              color: "var(--text-dim)",
+              marginLeft: "0.25rem",
+            }}
+          >
+            {count}
+          </span>
+        )}
+      </div>
+      {action && <div>{action}</div>}
+    </div>
+  );
+}
+
+// ─── Divider ─────────────────────────────────────────────────────────────────
+
+export function Divider({ className, style }: { className?: string; style?: React.CSSProperties }) {
+  return (
+    <div
+      className={cn("divider", className)}
+      style={{ margin: "1.75rem 0", ...style }}
     />
   );
 }
 
-// ─── Label / Value pair ───────────────────────────────────────────────────────
+// ─── DataField ───────────────────────────────────────────────────────────────
+// Label + value pair used in investigation sheets.
 
 interface DataFieldProps {
   label: string;
   value?: string | number | boolean | null;
   mono?: boolean;
-  children?: React.ReactNode;
+  children?: ReactNode;
+  size?: "sm" | "md" | "lg";
 }
 
-export function DataField({ label, value, mono = false, children }: DataFieldProps) {
+export function DataField({
+  label,
+  value,
+  mono = false,
+  children,
+  size = "md",
+}: DataFieldProps) {
   const displayValue = children ?? (value === null || value === undefined ? "—" : String(value));
   const isEmpty = !children && (value === null || value === undefined);
 
+  const valueSizes = {
+    sm: "var(--text-sm)",
+    md: mono ? "var(--text-sm)" : "var(--text-base)",
+    lg: "var(--text-xl)",
+  };
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem" }}>
-      <p
+    <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+      <p className="t-label">{label}</p>
+      <div
         style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: "0.6rem",
-          letterSpacing: "0.12em",
-          color: "var(--text-dim)",
-          textTransform: "uppercase",
-        }}
-      >
-        {label}
-      </p>
-      <p
-        style={{
-          fontFamily: mono ? "var(--font-mono)" : "var(--font-sans)",
-          fontSize: mono ? "0.8rem" : "0.875rem",
+          fontFamily: mono ? "var(--font-mono)" : "var(--font-body)",
+          fontSize: valueSizes[size],
           color: isEmpty ? "var(--text-dim)" : "var(--text)",
           lineHeight: 1.5,
-          wordBreak: "break-all",
+          wordBreak: "break-word",
         }}
       >
         {displayValue}
-      </p>
+      </div>
     </div>
   );
 }
 
-// ─── Error state ──────────────────────────────────────────────────────────────
+// ─── RequestError ─────────────────────────────────────────────────────────────
 
 interface RequestErrorProps {
   message: string;
@@ -155,72 +212,68 @@ export function RequestError({ message, onRetry }: RequestErrorProps) {
   return (
     <div
       style={{
-        padding: "2rem",
+        padding: "1.5rem",
         border: "1px solid var(--border-subtle)",
-        borderLeft: "2px solid rgba(231,80,80,0.5)",
+        borderLeft: "2px solid var(--error)",
+        background: "var(--error-dim)",
       }}
     >
-      <p
+      <div
         style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: "0.65rem",
-          letterSpacing: "0.12em",
-          color: "rgba(231,80,80,0.8)",
+          display: "flex",
+          alignItems: "center",
+          gap: "0.5rem",
           marginBottom: "0.5rem",
         }}
       >
-        REQUEST FAILED
-      </p>
+        <AlertCircle size={13} style={{ color: "var(--error)", flexShrink: 0 }} />
+        <p className="t-label" style={{ color: "var(--error)" }}>
+          REQUEST FAILED
+        </p>
+      </div>
       <p
         style={{
+          fontFamily: "var(--font-body)",
           color: "var(--text-muted)",
-          fontSize: "0.875rem",
+          fontSize: "var(--text-sm)",
           marginBottom: onRetry ? "1.25rem" : 0,
+          lineHeight: 1.55,
         }}
       >
         {message}
       </p>
       {onRetry && (
-        <button
-          onClick={onRetry}
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "0.65rem",
-            letterSpacing: "0.1em",
-            color: "var(--text-muted)",
-            border: "1px solid var(--border)",
-            padding: "0.4rem 0.8rem",
-            cursor: "pointer",
-            background: "transparent",
-            transition: "all 0.15s",
-          }}
-          className="hover:border-[var(--accent)] hover:text-[var(--accent)]"
-        >
-          RETRY
-        </button>
+        <GhostButton onClick={onRetry} icon={<RotateCcw size={12} />}>
+          Retry
+        </GhostButton>
       )}
     </div>
   );
 }
 
-// ─── Empty state ──────────────────────────────────────────────────────────────
+// ─── EmptyState ───────────────────────────────────────────────────────────────
 
-export function EmptyState({ title, description }: { title: string; description?: string }) {
+export function EmptyState({
+  title,
+  description,
+}: {
+  title: string;
+  description?: string;
+}) {
   return (
-    <div style={{ padding: "3rem 0" }}>
-      <p
-        style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: "0.65rem",
-          letterSpacing: "0.12em",
-          color: "var(--text-dim)",
-          marginBottom: "0.5rem",
-        }}
-      >
+    <div style={{ padding: "2.5rem 0" }}>
+      <p className="t-label" style={{ marginBottom: "0.5rem" }}>
         {title}
       </p>
       {description && (
-        <p style={{ color: "var(--text-muted)", fontSize: "0.875rem" }}>
+        <p
+          style={{
+            fontFamily: "var(--font-body)",
+            color: "var(--text-muted)",
+            fontSize: "var(--text-sm)",
+            lineHeight: 1.6,
+          }}
+        >
           {description}
         </p>
       )}
@@ -230,43 +283,46 @@ export function EmptyState({ title, description }: { title: string; description?
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 
-export function Skeleton({ className }: { className?: string }) {
+interface SkeletonProps {
+  className?: string;
+  width?: string | number;
+  height?: string | number;
+  style?: React.CSSProperties;
+}
+
+export function Skeleton({ className, width, height, style }: SkeletonProps) {
   return (
     <div
-      className={cn("animate-pulse", className)}
+      className={cn("skeleton", className)}
       style={{
-        background: "var(--surface-raised)",
+        width,
+        height,
         borderRadius: "2px",
+        ...style,
       }}
     />
   );
 }
 
-// ─── Tag / Badge ──────────────────────────────────────────────────────────────
+// ─── SkeletonLine ─────────────────────────────────────────────────────────────
+// Quick skeleton text line with configurable width
 
-export function Tag({ children }: { children: React.ReactNode }) {
+export function SkeletonLine({ width = "100%", height = "12px" }: { width?: string; height?: string }) {
   return (
-    <span
-      style={{
-        fontFamily: "var(--font-mono)",
-        fontSize: "0.6rem",
-        letterSpacing: "0.1em",
-        color: "var(--text-dim)",
-        border: "1px solid var(--border-subtle)",
-        padding: "0.2rem 0.5rem",
-        textTransform: "uppercase",
-      }}
-    >
-      {children}
-    </span>
+    <div
+      className="skeleton"
+      style={{ width, height, borderRadius: "2px" }}
+    />
   );
 }
 
-// ─── Primary button ───────────────────────────────────────────────────────────
+// ─── ActionButton ─────────────────────────────────────────────────────────────
+// Primary CTA button — amber fill.
 
-interface ActionButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface ActionButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   loading?: boolean;
   loadingText?: string;
+  icon?: ReactNode;
 }
 
 export function ActionButton({
@@ -274,45 +330,224 @@ export function ActionButton({
   loading,
   loadingText,
   disabled,
+  icon,
   ...props
 }: ActionButtonProps) {
+  const isDisabled = disabled || loading;
   return (
     <button
-      disabled={disabled || loading}
+      disabled={isDisabled}
       style={{
         background: "var(--accent)",
         color: "#09090B",
-        fontFamily: "var(--font-sans)",
-        fontSize: "0.8rem",
-        fontWeight: 600,
+        fontFamily: "var(--font-display)",
+        fontSize: "var(--text-xs)",
+        fontWeight: 700,
         letterSpacing: "0.04em",
+        textTransform: "uppercase",
         padding: "0 1.25rem",
         height: "40px",
         border: "none",
-        cursor: disabled || loading ? "not-allowed" : "pointer",
-        opacity: disabled || loading ? 0.6 : 1,
-        transition: "opacity 0.15s",
+        cursor: isDisabled ? "not-allowed" : "pointer",
+        opacity: isDisabled ? 0.55 : 1,
+        transition: "opacity var(--t-base)",
         whiteSpace: "nowrap",
         display: "inline-flex",
         alignItems: "center",
-        gap: "0.5rem",
+        gap: "0.4rem",
         flexShrink: 0,
       }}
-      className="hover:opacity-80"
+      className={!isDisabled ? "hover:opacity-80" : ""}
       {...props}
     >
+      {icon && !loading && icon}
       {loading ? (loadingText ?? "Loading…") : children}
     </button>
   );
 }
 
-// ─── Text input ───────────────────────────────────────────────────────────────
+// ─── GhostButton ─────────────────────────────────────────────────────────────
+// Secondary / outline button.
 
-interface TextInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface GhostButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  icon?: ReactNode;
+  active?: boolean;
+}
+
+export function GhostButton({ children, icon, active, disabled, ...props }: GhostButtonProps) {
+  return (
+    <button
+      disabled={disabled}
+      style={{
+        fontFamily: "var(--font-mono)",
+        fontSize: "var(--text-2xs)",
+        letterSpacing: "0.1em",
+        textTransform: "uppercase",
+        color: active ? "var(--accent)" : "var(--text-muted)",
+        border: active
+          ? "1px solid var(--accent)"
+          : "1px solid var(--border)",
+        background: active ? "var(--accent-dim)" : "transparent",
+        padding: "0.35rem 0.75rem",
+        cursor: disabled ? "not-allowed" : "pointer",
+        opacity: disabled ? 0.5 : 1,
+        transition: "all var(--t-base)",
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "0.35rem",
+        whiteSpace: "nowrap",
+      }}
+      {...props}
+    >
+      {icon && icon}
+      {children}
+    </button>
+  );
+}
+
+// ─── IconButton ───────────────────────────────────────────────────────────────
+// Minimal icon-only action button.
+
+interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  label: string;  // always required for accessibility
+  active?: boolean;
+}
+
+export function IconButton({ children, label, active, ...props }: IconButtonProps) {
+  return (
+    <button
+      aria-label={label}
+      title={label}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "transparent",
+        border: "none",
+        color: active ? "var(--accent)" : "var(--text-dim)",
+        cursor: "pointer",
+        padding: "0.3rem",
+        transition: "color var(--t-base)",
+        flexShrink: 0,
+      }}
+      className="hover:text-[var(--text)]"
+      {...props}
+    >
+      {children}
+    </button>
+  );
+}
+
+// ─── CopyButton ───────────────────────────────────────────────────────────────
+
+import { useState } from "react";
+import { Copy, Check } from "lucide-react";
+
+interface CopyButtonProps {
+  text: string;
+  label?: string;
+  size?: number;
+}
+
+export function CopyButton({ text, label = "Copy", size = 13 }: CopyButtonProps) {
+  const [copied, setCopied] = useState(false);
+
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // clipboard unavailable
+    }
+  }
+
+  return (
+    <IconButton
+      label={copied ? "Copied" : label}
+      active={copied}
+      onClick={handleCopy}
+    >
+      {copied ? <Check size={size} /> : <Copy size={size} />}
+    </IconButton>
+  );
+}
+
+// ─── ExternalLinkButton ───────────────────────────────────────────────────────
+
+import { ExternalLink } from "lucide-react";
+
+interface ExternalLinkButtonProps {
+  href: string;
+  label?: string;
+  size?: number;
+}
+
+export function ExternalLinkButton({
+  href,
+  label = "Open link",
+  size = 13,
+}: ExternalLinkButtonProps) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={`${label} (opens in new tab)`}
+      title={label}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color: "var(--text-dim)",
+        padding: "0.3rem",
+        transition: "color var(--t-base)",
+        flexShrink: 0,
+      }}
+      className="hover:text-[var(--accent)]"
+    >
+      <ExternalLink size={size} />
+    </a>
+  );
+}
+
+// ─── Tag ──────────────────────────────────────────────────────────────────────
+
+interface TagProps {
+  children: ReactNode;
+  variant?: "default" | "accent" | "dim";
+}
+
+export function Tag({ children, variant = "default" }: TagProps) {
+  const colors = {
+    default: { color: "var(--text-dim)", border: "var(--border-subtle)" },
+    accent:  { color: "var(--accent)",   border: "var(--accent)" },
+    dim:     { color: "var(--text-dim)", border: "transparent" },
+  };
+
+  return (
+    <span
+      className="t-label"
+      style={{
+        color: colors[variant].color,
+        border: `1px solid ${colors[variant].border}`,
+        padding: "0.18rem 0.45rem",
+        display: "inline-block",
+        lineHeight: 1.4,
+      }}
+    >
+      {children}
+    </span>
+  );
+}
+
+// ─── TextInput ────────────────────────────────────────────────────────────────
+
+interface TextInputProps extends InputHTMLAttributes<HTMLInputElement> {
   prefix?: string;
 }
 
-export function TextInput({ prefix, className, ...props }: TextInputProps) {
+export function TextInput({ prefix, ...props }: TextInputProps) {
   return (
     <div
       style={{
@@ -322,16 +557,19 @@ export function TextInput({ prefix, className, ...props }: TextInputProps) {
         background: "var(--surface)",
         flex: 1,
         minWidth: 0,
+        transition: "border-color var(--t-base)",
       }}
+      className="focus-within:border-[var(--text-dim)]"
     >
       {prefix && (
         <span
+          className="t-mono"
           style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "0.8rem",
+            fontSize: "var(--text-sm)",
             color: "var(--text-dim)",
-            padding: "0 0 0 1rem",
+            paddingLeft: "1rem",
             userSelect: "none",
+            flexShrink: 0,
           }}
         >
           {prefix}
@@ -344,7 +582,7 @@ export function TextInput({ prefix, className, ...props }: TextInputProps) {
           outline: "none",
           color: "var(--text)",
           fontFamily: "var(--font-mono)",
-          fontSize: "0.875rem",
+          fontSize: "var(--text-sm)",
           padding: "0 1rem",
           height: "40px",
           width: "100%",
@@ -353,5 +591,114 @@ export function TextInput({ prefix, className, ...props }: TextInputProps) {
         {...props}
       />
     </div>
+  );
+}
+
+// ─── StatusIndicator ──────────────────────────────────────────────────────────
+
+interface StatusIndicatorProps {
+  value: boolean | null | undefined;
+  trueLabel?: string;
+  falseLabel?: string;
+  nullLabel?: string;
+}
+
+export function StatusIndicator({
+  value,
+  trueLabel = "YES",
+  falseLabel = "NO",
+  nullLabel = "—",
+}: StatusIndicatorProps) {
+  if (value === null || value === undefined) {
+    return (
+      <span className="t-mono" style={{ fontSize: "var(--text-xs)", color: "var(--text-dim)" }}>
+        {nullLabel}
+      </span>
+    );
+  }
+
+  return (
+    <span
+      className="t-mono"
+      style={{
+        fontSize: "var(--text-xs)",
+        color: value ? "var(--accent)" : "var(--text-muted)",
+        fontWeight: value ? 600 : 400,
+      }}
+    >
+      {value ? trueLabel : falseLabel}
+    </span>
+  );
+}
+
+// ─── FilterBar ────────────────────────────────────────────────────────────────
+// Horizontal scrollable filter pills — used in Sherlock, Dorks, etc.
+
+interface FilterOption {
+  key: string;
+  label: string;
+  count?: number;
+}
+
+interface FilterBarProps {
+  options: FilterOption[];
+  active: string;
+  onChange: (key: string) => void;
+  ariaLabel?: string;
+}
+
+export function FilterBar({ options, active, onChange, ariaLabel }: FilterBarProps) {
+  return (
+    <div
+      role="group"
+      aria-label={ariaLabel ?? "Filter options"}
+      style={{
+        display: "flex",
+        gap: "0.35rem",
+        flexWrap: "wrap",
+      }}
+    >
+      {options.map((opt) => (
+        <GhostButton
+          key={opt.key}
+          active={active === opt.key}
+          onClick={() => onChange(opt.key)}
+        >
+          {opt.label}
+          {opt.count !== undefined && (
+            <span style={{ opacity: 0.6, marginLeft: "0.2rem" }}>{opt.count}</span>
+          )}
+        </GhostButton>
+      ))}
+    </div>
+  );
+}
+
+// ─── InlineLink ───────────────────────────────────────────────────────────────
+// Internal nav link with arrow style.
+
+import Link from "next/link";
+
+interface InlineLinkProps {
+  href: string;
+  children: ReactNode;
+  direction?: "forward" | "back";
+}
+
+export function InlineLink({ href, children, direction = "forward" }: InlineLinkProps) {
+  return (
+    <Link
+      href={href}
+      className="t-label hover:text-[var(--accent)]"
+      style={{
+        color: "var(--text-dim)",
+        transition: "color var(--t-base)",
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "0.3rem",
+      }}
+    >
+      {direction === "back" && "←"} {children} {direction === "forward" && "→"}
+    </Link>
   );
 }

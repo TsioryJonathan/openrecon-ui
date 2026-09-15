@@ -37,3 +37,8 @@ export function formatDateTime(dateStr: string): string {
     return dateStr;
   }
 }
+
+/** Pad a number for display as a case/index number */
+export function padIndex(n: number, digits = 2): string {
+  return String(n).padStart(digits, "0");
+}
