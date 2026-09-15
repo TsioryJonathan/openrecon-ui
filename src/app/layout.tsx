@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { GeistSans } from "geist/font/sans";
 import localFont from "next/font/local";
 import "./globals.css";
 import { QueryProvider } from "@/components/layout/QueryProvider";
@@ -46,7 +45,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${GeistSans.variable} ${jetbrainsMono.variable}`}
+      className={jetbrainsMono.variable}
     >
       <body>
         <QueryProvider>
