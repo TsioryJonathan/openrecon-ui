@@ -1,8 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useSites } from "@/hooks/useApi";
-import { ActionButton, TextInput, Skeleton } from "@/components/ui";
+import { ActionButton, TextInput } from "@/components/ui";
+import {
+  PlatformSelector,
+  type PlatformSelection,
+} from "@/components/sherlock/PlatformSelector";
 
 interface SherlockFormProps {
   onSearch: (username: string, sites: string[]) => void;
@@ -11,49 +15,47 @@ interface SherlockFormProps {
 
 export function SherlockForm({ onSearch, loading }: SherlockFormProps) {
   const [username, setUsername] = useState("");
-  const { data: sitesData, isLoading: sitesLoading } = useSites();
+  const [selection, setSelection] = useState<PlatformSelection>({
+    selectedSites: null, // null = all
+  });
 
-  // By default, select all sites
-  const allSites = sitesData?.categories.flatMap((c) => c.sites) ?? [];
-  const [selectedCategories, setSelectedCategories] = useState<Set<string>>(
-    new Set()
+  const { data: sitesData } = useSites();
+
+  const allSites = useMemo(
+    () => sitesData?.categories.flatMap((c) => c.sites) ?? [],
+    [sitesData]
   );
-
-  // "all selected" when nothing specifically selected = use all
-  const allSelected = selectedCategories.size === 0;
-
-  function toggleCategory(name: string) {
-    setSelectedCategories((prev) => {
-      const next = new Set(prev);
-      if (next.has(name)) {
-        next.delete(name);
-      } else {
-        next.add(name);
-      }
-      return next;
-    });
-  }
-
-  function selectAll() {
-    setSelectedCategories(new Set());
-  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!username.trim()) return;
-    const sites =
-      allSelected
-        ? allSites
-        : (sitesData?.categories ?? [])
-            .filter((c) => selectedCategories.has(c.name))
-            .flatMap((c) => c.sites);
-    onSearch(username.trim(), sites);
+    const trimmed = username.trim();
+    if (!trimmed) return;
+
+    // Resolve the final site list
+    let sites: string[];
+    if (selection.selectedSites === null) {
+      // All
+      sites = allSites;
+    } else {
+      sites = Array.from(selection.selectedSites);
+    }
+
+    onSearch(trimmed, sites);
   }
+
+  const isNoneSelected =
+    selection.selectedSites !== null && selection.selectedSites.size === 0;
 
   return (
     <form onSubmit={handleSubmit} noValidate>
-      {/* Search row */}
-      <div style={{ display: "flex", gap: "0", marginBottom: "2rem" }}>
+      {/* ── Input row ── */}
+      <div
+        style={{
+          display:      "flex",
+          gap:          0,
+          marginBottom: "1rem",
+        }}
+      >
         <TextInput
           prefix="@"
           type="text"
@@ -61,101 +63,51 @@ export function SherlockForm({ onSearch, loading }: SherlockFormProps) {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           autoComplete="off"
+          autoCapitalize="none"
           spellCheck={false}
           aria-label="Username to search"
           required
           minLength={1}
+          maxLength={64}
+          disabled={loading}
         />
-        <ActionButton type="submit" loading={loading} loadingText="Scanning…">
+        <ActionButton
+          type="submit"
+          loading={loading}
+          loadingText="Scanning…"
+          disabled={isNoneSelected}
+          title={isNoneSelected ? "Select at least one platform" : undefined}
+        >
           Search →
         </ActionButton>
       </div>
 
-      {/* Category filter */}
-      {sitesLoading ? (
-        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div
-              key={i}
-              className="animate-pulse"
-              style={{ width: "80px", height: "26px", background: "var(--surface-raised)", borderRadius: "2px" }}
-            />
-          ))}
-        </div>
-      ) : (
-        <div>
+      {/* ── Platform selector row ── */}
+      <div
+        style={{
+          display:    "flex",
+          alignItems: "center",
+          gap:        "0.875rem",
+          flexWrap:   "wrap",
+        }}
+      >
+        <PlatformSelector
+          value={selection}
+          onChange={setSelection}
+          disabled={loading}
+        />
+
+        {/* Validation hint when nothing selected */}
+        {isNoneSelected && (
           <p
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "0.6rem",
-              letterSpacing: "0.12em",
-              color: "var(--text-dim)",
-              marginBottom: "0.75rem",
-              textTransform: "uppercase",
-            }}
+            className="t-label"
+            style={{ color: "var(--error)", letterSpacing: "0.08em" }}
+            role="alert"
           >
-            Platforms — {sitesData?.total ?? 0} total
+            Select at least one platform to search
           </p>
-          <div
-            role="group"
-            aria-label="Filter by platform category"
-            style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}
-          >
-            {/* All button */}
-            <CategoryPill
-              label="All"
-              active={allSelected}
-              onClick={selectAll}
-            />
-            {sitesData?.categories.map((cat) => (
-              <CategoryPill
-                key={cat.name}
-                label={cat.name}
-                active={selectedCategories.has(cat.name)}
-                onClick={() => toggleCategory(cat.name)}
-                count={cat.sites.length}
-              />
-            ))}
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </form>
-  );
-}
-
-interface CategoryPillProps {
-  label: string;
-  active: boolean;
-  onClick: () => void;
-  count?: number;
-}
-
-function CategoryPill({ label, active, onClick, count }: CategoryPillProps) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      style={{
-        fontFamily: "var(--font-mono)",
-        fontSize: "0.65rem",
-        letterSpacing: "0.08em",
-        padding: "0.3rem 0.65rem",
-        border: active ? "1px solid var(--accent)" : "1px solid var(--border-subtle)",
-        background: active ? "var(--accent-dim)" : "transparent",
-        color: active ? "var(--accent)" : "var(--text-muted)",
-        cursor: "pointer",
-        transition: "all 0.12s",
-        display: "flex",
-        alignItems: "center",
-        gap: "0.35rem",
-      }}
-    >
-      {label}
-      {count !== undefined && (
-        <span style={{ color: active ? "var(--accent)" : "var(--text-dim)", fontSize: "0.55rem" }}>
-          {count}
-        </span>
-      )}
-    </button>
   );
 }
