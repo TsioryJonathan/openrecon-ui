@@ -7,109 +7,124 @@ import {
   ActionButton,
   RequestError,
   Divider,
+  SkeletonLine,
+  SectionHeader,
 } from "@/components/ui";
 import { DorksResults } from "@/components/dorks/DorksResults";
 import { useGenerateDorks } from "@/hooks/useApi";
+import { IconDorks } from "@/lib/icons";
+
+// ─── Input hint examples ──────────────────────────────────────────────────────
+
+const EXAMPLES = [
+  { type: "USERNAME", value: "john_doe"        },
+  { type: "EMAIL",    value: "john@example.com" },
+  { type: "DOMAIN",   value: "example.com"      },
+  { type: "NAME",     value: "John Doe"          },
+] as const;
+
+// ─── DorksTool ────────────────────────────────────────────────────────────────
 
 export function DorksTool() {
   const [target, setTarget] = useState("");
-  const { mutate, isPending, isError, error, data } = useGenerateDorks();
+  const { mutate, isPending, isError, error, data, reset } = useGenerateDorks();
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!target.trim()) return;
-    mutate({ target: target.trim() });
+    const t = target.trim();
+    if (!t) return;
+    reset();
+    mutate({ target: t });
   }
 
   return (
     <ToolPage
-      eyebrow="DORKS"
+      eyebrow="DORKS / SEARCH"
       title="Search intelligence"
-      description="Generate targeted Google dork queries for a username, email address, domain, or real name."
+      description="Generate targeted search operator queries for a username, email, domain, or real name."
+      icon={<IconDorks size={20} />}
     >
-      {/* How-to hint */}
+      {/* ── Example hints ── */}
       <div
         style={{
-          display: "flex",
-          gap: "1.5rem",
-          marginBottom: "2rem",
-          flexWrap: "wrap",
+          display:      "flex",
+          gap:          "2rem",
+          marginBottom: "1.75rem",
+          flexWrap:     "wrap",
         }}
+        aria-label="Input examples"
       >
-        {[
-          ["Username", "john_doe"],
-          ["Email", "john@example.com"],
-          ["Domain", "example.com"],
-          ["Name", "John Doe"],
-        ].map(([type, ex]) => (
-          <div key={type}>
-            <p
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "0.58rem",
-                letterSpacing: "0.12em",
-                color: "var(--text-dim)",
-                marginBottom: "0.15rem",
-                textTransform: "uppercase",
-              }}
-            >
+        {EXAMPLES.map(({ type, value }) => (
+          <button
+            key={type}
+            type="button"
+            onClick={() => setTarget(value)}
+            title={`Use "${value}" as target`}
+            style={{
+              background: "transparent",
+              border:     "none",
+              cursor:     "pointer",
+              textAlign:  "left",
+              padding:    0,
+            }}
+          >
+            <p className="t-label" style={{ marginBottom: "0.2rem" }}>
               {type}
             </p>
             <p
+              className="t-mono hover:text-[var(--accent)]"
               style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "0.7rem",
-                color: "var(--text-muted)",
+                fontSize:   "var(--text-xs)",
+                color:      "var(--text-muted)",
+                transition: "color var(--t-base)",
               }}
             >
-              {ex}
+              {value}
             </p>
-          </div>
+          </button>
         ))}
       </div>
 
-      {/* Form */}
-      <form onSubmit={handleSubmit}>
-        <div style={{ display: "flex", gap: 0, maxWidth: "480px" }}>
+      {/* ── Form ── */}
+      <form onSubmit={handleSubmit} noValidate>
+        <div style={{ display: "flex", gap: 0, maxWidth: "520px" }}>
           <TextInput
             type="text"
             placeholder="username, email, domain, or name"
             value={target}
             onChange={(e) => setTarget(e.target.value)}
             autoComplete="off"
+            autoCapitalize="none"
             spellCheck={false}
-            aria-label="Target to generate dorks for"
+            aria-label="Target to generate dork queries for"
             required
             maxLength={64}
+            disabled={isPending}
           />
-          <ActionButton type="submit" loading={isPending} loadingText="Generating…">
+          <ActionButton
+            type="submit"
+            loading={isPending}
+            loadingText="Generating…"
+          >
             Generate →
           </ActionButton>
         </div>
       </form>
 
-      {/* Results */}
+      {/* ── Results / states ── */}
       {(isPending || data || isError) && (
         <>
-          <Divider className="mt-8" />
+          <Divider style={{ margin: "2rem 0" }} />
 
-          {isPending && (
-            <p
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "0.72rem",
-                color: "var(--text-dim)",
-                animation: "scan-pulse 1.5s ease-in-out infinite",
-              }}
-            >
-              Generating dork queries…
-            </p>
-          )}
+          {isPending && <DorksSkeleton />}
 
-          {isError && (
+          {isError && !isPending && (
             <RequestError
-              message={error?.detail ?? "Failed to generate dork queries."}
-              onRetry={() => mutate({ target })}
+              message={
+                (error as { detail?: string })?.detail ??
+                "Failed to generate dork queries."
+              }
+              onRetry={() => mutate({ target: target.trim() })}
             />
           )}
 
@@ -117,5 +132,90 @@ export function DorksTool() {
         </>
       )}
     </ToolPage>
+  );
+}
+
+// ─── DorksSkeleton ────────────────────────────────────────────────────────────
+
+function DorksSkeleton() {
+  return (
+    <div aria-label="Generating queries" aria-busy="true">
+
+      {/* Header */}
+      <div
+        style={{
+          display:      "flex",
+          alignItems:   "baseline",
+          gap:          "0.875rem",
+          marginBottom: "1.5rem",
+        }}
+      >
+        <p className="t-label animate-scan-pulse" style={{ color: "var(--accent)" }}>
+          GENERATING QUERIES
+        </p>
+      </div>
+
+      {/* Mock categories */}
+      {[4, 3, 5].map((count, ci) => (
+        <div key={ci} style={{ marginBottom: "2.5rem" }}>
+
+          {/* Category header skeleton */}
+          <div
+            style={{
+              borderTop: "1px solid var(--border-subtle)",
+              padding:   "1rem 0 0.875rem",
+              display:   "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+            }}
+          >
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+              <SkeletonLine width="90px"  height="10px" />
+              <SkeletonLine width="180px" height="10px" />
+            </div>
+            <SkeletonLine width="60px" height="10px" />
+          </div>
+
+          {/* Dork row skeletons */}
+          {Array.from({ length: count }).map((_, i) => (
+            <div
+              key={i}
+              style={{
+                borderTop: "1px solid var(--border-subtle)",
+                padding:   "1rem 0",
+              }}
+            >
+              {/* Title */}
+              <div style={{ display: "flex", gap: "0.75rem", marginBottom: "0.6rem", alignItems: "baseline" }}>
+                <SkeletonLine width="18px"  height="9px" />
+                <SkeletonLine width={`${110 + (i * 27) % 80}px`} height="12px" />
+              </div>
+
+              {/* Query box */}
+              <div
+                style={{
+                  background: "var(--surface)",
+                  border:     "1px solid var(--border-subtle)",
+                  padding:    "0.75rem 1rem",
+                  marginBottom: "0.75rem",
+                  display:    "flex",
+                  flexDirection: "column",
+                  gap:        "0.4rem",
+                }}
+              >
+                <SkeletonLine width={`${160 + (i * 43) % 120}px`} height="12px" />
+              </div>
+
+              {/* Actions */}
+              <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
+                <SkeletonLine width="80px"  height="10px" />
+                <SkeletonLine width="4px"   height="4px"  />
+                <SkeletonLine width="110px" height="28px" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
   );
 }
