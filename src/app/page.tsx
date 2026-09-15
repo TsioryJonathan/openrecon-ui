@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import {
   IconSherlock,
   IconRecon,
@@ -117,18 +116,6 @@ export default function HomePage() {
             width:    "100%",
           }}
         >
-          {/* Logo */}
-          <div style={{ marginBottom: "3rem" }}>
-            <Image
-              src="/logos/logo-hero.png"
-              alt="OpenRecon"
-              width={280}
-              height={90}
-              style={{ height: "clamp(60px, 8vw, 90px)", width: "auto" }}
-              priority
-            />
-          </div>
-
           {/* Eyebrow */}
           <div
             style={{
