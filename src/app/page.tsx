@@ -1,129 +1,181 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import {
+  IconSherlock,
+  IconRecon,
+  IconExif,
+  IconDorks,
+  IconArrow,
+} from "@/lib/icons";
+
+// ─── Instrument index data ────────────────────────────────────────────────────
 
 const INSTRUMENTS = [
   {
-    id: "SHERLOCK",
-    href: "/sherlock",
-    label: "Username reconnaissance",
-    description: "Scan 480+ platforms for a username in seconds.",
+    index:       "01",
+    id:          "SHERLOCK",
+    href:        "/sherlock",
+    Icon:        IconSherlock,
+    label:       "USERNAME RECONNAISSANCE",
+    description: "Scan 480+ platforms and surface every account tied to an identity.",
   },
   {
-    id: "RECON",
-    href: "/recon",
-    label: "IP & domain intelligence",
-    description: "Geolocation, ASN, DNS records, subdomains.",
+    index:       "02",
+    id:          "RECON",
+    href:        "/recon",
+    Icon:        IconRecon,
+    label:       "NETWORK INTELLIGENCE",
+    description: "Geolocate IPs, map ASNs, resolve DNS records and enumerate subdomains.",
   },
   {
-    id: "EXIF",
-    href: "/exif",
-    label: "Metadata extraction",
-    description: "Forensic analysis of image EXIF data, GPS, device.",
+    index:       "03",
+    id:          "EXIF",
+    href:        "/exif",
+    Icon:        IconExif,
+    label:       "METADATA FORENSICS",
+    description: "Extract device, GPS, capture settings and attribution from image files.",
   },
   {
-    id: "DORKS",
-    href: "/dorks",
-    label: "Search intelligence",
-    description: "Generate targeted Google dork queries.",
+    index:       "04",
+    id:          "DORKS",
+    href:        "/dorks",
+    Icon:        IconDorks,
+    label:       "SEARCH INTELLIGENCE",
+    description: "Generate targeted search operators to surface exposed assets and data.",
   },
 ] as const;
 
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
 export default function HomePage() {
   return (
-    <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
-      {/* Hero */}
+    <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
+
+      {/* ── Hero ────────────────────────────────────────────────────────────── */}
       <section
         style={{
-          position: "relative",
-          minHeight: "100vh",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          overflow: "hidden",
+          position:       "relative",
+          minHeight:      "100vh",
+          display:        "flex",
+          flexDirection:  "column",
+          justifyContent: "flex-end",
+          overflow:       "hidden",
         }}
       >
-        {/* Background image + overlays */}
+
+        {/* Background: satellite image */}
         <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            backgroundImage: `url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop')`,
-            backgroundSize: "cover",
-            backgroundPosition: "center 30%",
-            opacity: 0.18,
-          }}
           aria-hidden="true"
-        />
-        <div
           style={{
-            position: "absolute",
-            inset: 0,
-            background:
-              "linear-gradient(to bottom, var(--bg) 0%, transparent 30%, transparent 70%, var(--bg) 100%)",
+            position:           "absolute",
+            inset:              0,
+            backgroundImage:    "url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop')",
+            backgroundSize:     "cover",
+            backgroundPosition: "center 25%",
+            opacity:            0.12,
           }}
-          aria-hidden="true"
-        />
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            background:
-              "radial-gradient(ellipse 80% 60% at 60% 40%, transparent 40%, var(--bg) 100%)",
-          }}
-          aria-hidden="true"
         />
 
-        {/* Content */}
+        {/* Gradient: dark vignette, heavier at bottom */}
+        <div
+          aria-hidden="true"
+          style={{
+            position:   "absolute",
+            inset:      0,
+            background: "linear-gradient(160deg, var(--bg) 0%, transparent 40%, var(--bg) 85%)",
+          }}
+        />
+        <div
+          aria-hidden="true"
+          style={{
+            position:   "absolute",
+            inset:      0,
+            background: "linear-gradient(to top, var(--bg) 0%, transparent 50%)",
+          }}
+        />
+
+        {/* Subtle noise grain overlay */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            inset:    0,
+            opacity:  0.025,
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E")`,
+            backgroundRepeat: "repeat",
+            backgroundSize:   "128px",
+          }}
+        />
+
+        {/* Content — anchored to bottom */}
         <div
           style={{
             position: "relative",
             maxWidth: "72rem",
-            margin: "0 auto",
-            padding: "7rem 2rem 4rem",
-            width: "100%",
+            margin:   "0 auto",
+            padding:  "0 2rem 5rem",
+            width:    "100%",
           }}
         >
           {/* Eyebrow */}
-          <p
+          <div
             style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "0.7rem",
-              letterSpacing: "0.14em",
-              color: "var(--accent)",
-              marginBottom: "2rem",
+              display:       "flex",
+              alignItems:    "center",
+              gap:           "1rem",
+              marginBottom:  "2.5rem",
             }}
           >
-            OSINT TOOLKIT
-          </p>
+            <p
+              className="t-label"
+              style={{ color: "var(--accent)", letterSpacing: "0.16em" }}
+            >
+              OSINT TOOLKIT
+            </p>
+            <span
+              className="t-label"
+              style={{ color: "var(--border)", letterSpacing: 0 }}
+            >
+              /
+            </span>
+            <p
+              className="t-label"
+              style={{ color: "var(--text-dim)", letterSpacing: "0.12em" }}
+            >
+              04 INSTRUMENTS
+            </p>
+          </div>
 
           {/* Headline */}
           <h1
             style={{
-              fontSize: "clamp(3rem, 8vw, 6.5rem)",
-              lineHeight: 1.02,
-              fontWeight: 400,
-              marginBottom: "1.5rem",
-              maxWidth: "14ch",
+              marginBottom: "1.75rem",
+              maxWidth:     "16ch",
             }}
           >
+            {/* "Digital intelligence," — display font */}
             <span
               style={{
-                fontFamily: "var(--font-sans)",
-                color: "var(--text)",
-                display: "block",
-                fontWeight: 300,
-                letterSpacing: "-0.02em",
+                display:       "block",
+                fontFamily:    "var(--font-display)",
+                fontSize:      "clamp(2.5rem, 7vw, 5.5rem)",
+                fontWeight:    700,
+                letterSpacing: "-0.03em",
+                lineHeight:    1.0,
+                color:         "var(--text)",
               }}
             >
               Digital intelligence,
             </span>
+            {/* "organized." — Fraunces italic accent */}
             <span
               style={{
+                display:    "block",
                 fontFamily: "var(--font-editorial)",
-                color: "var(--accent)",
-                display: "block",
-                fontStyle: "italic",
+                fontSize:   "clamp(2.5rem, 7vw, 5.5rem)",
                 fontWeight: 400,
+                fontStyle:  "italic",
+                lineHeight: 1.05,
+                color:      "var(--accent)",
               }}
             >
               organized.
@@ -133,179 +185,169 @@ export default function HomePage() {
           {/* Subhead */}
           <p
             style={{
-              color: "var(--text-muted)",
-              fontSize: "1rem",
-              lineHeight: 1.65,
-              maxWidth: "42ch",
-              marginBottom: "3rem",
+              fontFamily:   "var(--font-body)",
+              color:        "var(--text-muted)",
+              fontSize:     "var(--text-base)",
+              lineHeight:   1.7,
+              maxWidth:     "46ch",
+              marginBottom: "2.75rem",
             }}
           >
-            A suite of instruments for digital reconnaissance.
-            <br />
-            Find what others can&apos;t.
+            A focused suite for digital reconnaissance,
+            investigation and evidence discovery.
           </p>
 
           {/* CTA */}
           <Link
             href="/sherlock"
             style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.5rem",
-              color: "var(--accent)",
-              fontSize: "0.8rem",
-              letterSpacing: "0.1em",
+              display:       "inline-flex",
+              alignItems:    "center",
+              gap:           "0.5rem",
+              fontFamily:    "var(--font-mono)",
+              fontSize:      "var(--text-xs)",
+              letterSpacing: "0.12em",
               textTransform: "uppercase",
-              fontWeight: 500,
-              borderBottom: "1px solid var(--accent)",
+              color:         "var(--accent)",
+              borderBottom:  "1px solid currentColor",
               paddingBottom: "2px",
-              transition: "opacity 0.15s",
+              transition:    "opacity var(--t-base)",
             }}
-            className="hover:opacity-70"
+            className="hover:opacity-60"
           >
             Explore tools
-            <ArrowRight size={14} />
+            <IconArrow size={13} />
           </Link>
-
-          {/* Stats row */}
-          <div
-            style={{
-              display: "flex",
-              gap: "3rem",
-              marginTop: "5rem",
-              flexWrap: "wrap",
-            }}
-          >
-            {[
-              ["480+", "Platforms"],
-              ["IP / Domain", "Recon"],
-              ["Image Metadata", "EXIF"],
-              ["Search Operators", "Dorks"],
-            ].map(([val, label]) => (
-              <div key={label}>
-                <p
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "0.75rem",
-                    color: "var(--text)",
-                    letterSpacing: "0.06em",
-                    marginBottom: "0.2rem",
-                  }}
-                >
-                  {val}
-                </p>
-                <p
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "0.65rem",
-                    color: "var(--text-dim)",
-                    letterSpacing: "0.1em",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  {label}
-                </p>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
-      {/* Instruments grid */}
+      {/* ── Instrument index ─────────────────────────────────────────────────── */}
       <section
         style={{
           maxWidth: "72rem",
-          margin: "0 auto",
-          padding: "6rem 2rem",
+          margin:   "0 auto",
+          padding:  "0 2rem 7rem",
         }}
+        aria-label="Available instruments"
       >
-        <p
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "0.65rem",
-            letterSpacing: "0.14em",
-            color: "var(--text-dim)",
-            marginBottom: "3rem",
-          }}
-        >
-          INSTRUMENTS
-        </p>
-
+        {/* Section label */}
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-            gap: "0",
+            display:       "flex",
+            alignItems:    "center",
+            gap:           "1rem",
+            marginBottom:  "0",
+            paddingBottom: "1.25rem",
+            borderBottom:  "1px solid var(--border-subtle)",
           }}
         >
-          {INSTRUMENTS.map(({ id, href, label, description }, i) => (
-            <Link
-              key={id}
-              href={href}
-              style={{
-                display: "block",
-                padding: "2rem",
-                borderTop: "1px solid var(--border-subtle)",
-                borderRight:
-                  i % 2 === 0 ? "1px solid var(--border-subtle)" : "none",
-                transition: "background 0.15s",
-                textDecoration: "none",
-              }}
-              className="hover:bg-[var(--surface)] group"
-            >
-              <p
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "0.65rem",
-                  letterSpacing: "0.14em",
-                  color: "var(--accent)",
-                  marginBottom: "1rem",
-                }}
-              >
-                {id}
-              </p>
-              <p
-                style={{
-                  color: "var(--text)",
-                  fontSize: "1.05rem",
-                  fontWeight: 400,
-                  marginBottom: "0.5rem",
-                  letterSpacing: "-0.01em",
-                }}
-              >
-                {label}
-              </p>
-              <p
-                style={{
-                  color: "var(--text-muted)",
-                  fontSize: "0.82rem",
-                  lineHeight: 1.6,
-                  marginBottom: "1.5rem",
-                }}
-              >
-                {description}
-              </p>
-              <span
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "0.35rem",
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "0.65rem",
-                  letterSpacing: "0.1em",
-                  color: "var(--text-dim)",
-                  transition: "color 0.15s",
-                }}
-                className="group-hover:text-[var(--accent)]"
-              >
-                OPEN
-                <ArrowRight size={10} />
-              </span>
-            </Link>
-          ))}
+          <p className="t-label" style={{ color: "var(--text-dim)" }}>
+            INSTRUMENTS
+          </p>
+          <p className="t-label" style={{ color: "var(--border)" }}>
+            04
+          </p>
         </div>
-        <div style={{ borderTop: "1px solid var(--border-subtle)" }} />
+
+        {/* Index list */}
+        <ol style={{ listStyle: "none" }}>
+          {INSTRUMENTS.map(({ index, id, href, Icon, label, description }) => (
+            <li key={id}>
+              <Link
+                href={href}
+                style={{
+                  display:        "grid",
+                  gridTemplateColumns: "3rem 1.75rem 1fr auto",
+                  alignItems:     "center",
+                  gap:            "1.25rem",
+                  padding:        "1.5rem 0",
+                  borderBottom:   "1px solid var(--border-subtle)",
+                  textDecoration: "none",
+                  transition:     "background var(--t-base)",
+                }}
+                className="group"
+                aria-label={`${id} — ${label}`}
+              >
+                {/* Index number */}
+                <span
+                  className="t-mono"
+                  style={{
+                    fontSize:      "var(--text-2xs)",
+                    letterSpacing: "0.1em",
+                    color:         "var(--text-dim)",
+                    transition:    "color var(--t-base)",
+                    lineHeight:    1,
+                  }}
+                >
+                  {index}
+                </span>
+
+                {/* Icon */}
+                <span
+                  style={{
+                    color:      "var(--text-dim)",
+                    transition: "color var(--t-base)",
+                    display:    "flex",
+                    alignItems: "center",
+                  }}
+                  className="group-hover:text-[var(--accent)]"
+                  aria-hidden="true"
+                >
+                  <Icon size={16} />
+                </span>
+
+                {/* Label + description */}
+                <div style={{ minWidth: 0 }}>
+                  <p
+                    style={{
+                      fontFamily:    "var(--font-display)",
+                      fontSize:      "var(--text-sm)",
+                      fontWeight:    600,
+                      letterSpacing: "0.04em",
+                      color:         "var(--text-muted)",
+                      marginBottom:  "0.2rem",
+                      transition:    "color var(--t-base)",
+                    }}
+                    className="group-hover:text-[var(--text)]"
+                  >
+                    {label}
+                  </p>
+                  <p
+                    style={{
+                      fontFamily: "var(--font-body)",
+                      fontSize:   "var(--text-sm)",
+                      color:      "var(--text-dim)",
+                      lineHeight: 1.5,
+                      transition: "color var(--t-base)",
+                    }}
+                    className="group-hover:text-[var(--text-muted)]"
+                  >
+                    {description}
+                  </p>
+                </div>
+
+                {/* Arrow */}
+                <span
+                  style={{
+                    color:      "var(--text-dim)",
+                    opacity:    0,
+                    transition: "opacity var(--t-base), transform var(--t-base)",
+                    display:    "flex",
+                    alignItems: "center",
+                    flexShrink: 0,
+                    transform:  "translateX(-4px)",
+                  }}
+                  className="group-hover:opacity-100 group-hover:translate-x-0"
+                  aria-hidden="true"
+                >
+                  <IconArrow size={14} />
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ol>
       </section>
+
     </div>
   );
 }
