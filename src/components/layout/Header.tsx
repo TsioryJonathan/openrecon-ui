@@ -146,7 +146,7 @@ export function Header() {
                     padding:       "0.4rem 0.75rem",
                     fontFamily:    "var(--font-display)",
                     fontSize:      "0.75rem",
-                    fontWeight:    active ? 600 : 500,
+                    fontWeight:    active ? 700 : 600,
                     letterSpacing: "0.01em",
                     color:         active ? "var(--accent)" : "var(--text-muted)",
                     position:      "relative",
@@ -281,7 +281,7 @@ export function Header() {
                       style={{
                         fontFamily:    "var(--font-display)",
                         fontSize:      "0.9375rem",
-                        fontWeight:    active ? 600 : 500,
+                        fontWeight:    active ? 700 : 600,
                         color:         active ? "var(--accent)" : "var(--text)",
                         letterSpacing: "-0.01em",
                         marginBottom:  "0.2rem",
