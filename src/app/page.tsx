@@ -166,11 +166,11 @@ export default function HomePage() {
             >
               Digital intelligence,
             </span>
-            {/* "organized." - Fraunces italic accent */}
+            {/* "organized." - Cabinet Grotesk accent */}
             <span
               style={{
                 display:    "block",
-                fontFamily: "var(--font-editorial)",
+                fontFamily: "var(--font-display)",
                 fontSize:   "clamp(2.5rem, 7vw, 5.5rem)",
                 fontWeight: 400,
                 fontStyle:  "italic",
