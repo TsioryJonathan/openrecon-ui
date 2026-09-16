@@ -149,7 +149,7 @@ export default function HomePage() {
           <h1
             style={{
               marginBottom: "1.75rem",
-              maxWidth:     "16ch",
+              maxWidth:     "22ch",
             }}
           >
             {/* "Digital intelligence," - display font */}
@@ -162,6 +162,7 @@ export default function HomePage() {
                 letterSpacing: "-0.03em",
                 lineHeight:    1.0,
                 color:         "var(--text)",
+                whiteSpace:    "nowrap",
               }}
             >
               Digital intelligence,
