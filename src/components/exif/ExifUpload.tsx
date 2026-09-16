@@ -1,24 +1,27 @@
 "use client";
 
 import { useRef, useState, useCallback } from "react";
-import { Upload } from "lucide-react";
+import { Upload, RefreshCw } from "lucide-react";
 
-const ACCEPTED = ["image/jpeg", "image/png", "image/tiff", "image/heic", "image/webp"];
+const ACCEPTED     = ["image/jpeg", "image/png", "image/tiff", "image/heic", "image/webp"];
 const ACCEPTED_EXT = "JPEG · PNG · TIFF · HEIC · WEBP";
 
 interface ExifUploadProps {
-  onFile: (file: File) => void;
-  loading: boolean;
+  onFile:   (file: File) => void;
+  loading:  boolean;
+  hasFile?: boolean;  // true when a file is already loaded — show "replace" variant
 }
 
-export function ExifUpload({ onFile, loading }: ExifUploadProps) {
+export function ExifUpload({ onFile, loading, hasFile }: ExifUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
 
   function validate(file: File): boolean {
     if (!ACCEPTED.includes(file.type)) {
-      setValidationError(`Unsupported format: ${file.type || "unknown"}. Use ${ACCEPTED_EXT}.`);
+      setValidationError(
+        `Unsupported format: ${file.type || "unknown"}. Accepted: ${ACCEPTED_EXT}.`
+      );
       return false;
     }
     setValidationError(null);
@@ -29,10 +32,11 @@ export function ExifUpload({ onFile, loading }: ExifUploadProps) {
     (e: React.DragEvent) => {
       e.preventDefault();
       setDragOver(false);
+      if (loading) return;
       const file = e.dataTransfer.files[0];
       if (file && validate(file)) onFile(file);
     },
-    [onFile]
+    [onFile, loading]
   );
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -45,65 +49,93 @@ export function ExifUpload({ onFile, loading }: ExifUploadProps) {
     <div>
       <div
         role="button"
-        tabIndex={0}
-        aria-label="Upload image for EXIF extraction. Click or drag and drop."
+        tabIndex={loading ? -1 : 0}
+        aria-label={
+          hasFile
+            ? "Replace image file for EXIF extraction"
+            : "Upload image for EXIF extraction — click or drag and drop"
+        }
+        aria-disabled={loading}
         onDragOver={(e) => {
           e.preventDefault();
-          setDragOver(true);
+          if (!loading) setDragOver(true);
         }}
         onDragLeave={() => setDragOver(false)}
         onDrop={handleDrop}
-        onClick={() => inputRef.current?.click()}
+        onClick={() => { if (!loading) inputRef.current?.click(); }}
         onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") inputRef.current?.click();
+          if (!loading && (e.key === "Enter" || e.key === " ")) {
+            e.preventDefault();
+            inputRef.current?.click();
+          }
         }}
         style={{
-          border: dragOver
+          border:     dragOver
             ? "1px solid var(--accent)"
-            : "1px solid var(--border-subtle)",
+            : hasFile
+            ? "1px solid var(--border-subtle)"
+            : "1px dashed var(--border)",
           background: dragOver ? "var(--accent-glow)" : "var(--surface)",
-          padding: "3rem 2rem",
-          textAlign: "center",
-          cursor: loading ? "not-allowed" : "pointer",
-          transition: "all 0.15s",
-          maxWidth: "480px",
-          opacity: loading ? 0.6 : 1,
+          padding:    hasFile ? "0.875rem 1.25rem" : "2.5rem 2rem",
+          textAlign:  "center",
+          cursor:     loading ? "not-allowed" : "pointer",
+          transition: "all var(--t-base)",
+          opacity:    loading ? 0.55 : 1,
+          display:    "flex",
+          alignItems: "center",
+          gap:        hasFile ? "0.75rem" : undefined,
+          flexDirection: hasFile ? "row" : "column",
+          justifyContent: hasFile ? "flex-start" : "center",
+          maxWidth:   hasFile ? "360px" : "420px",
         }}
       >
-        <Upload
-          size={20}
-          style={{ color: "var(--text-dim)", margin: "0 auto 1rem" }}
-          aria-hidden="true"
-        />
-        <p
-          style={{
-            color: "var(--text-muted)",
-            fontSize: "0.875rem",
-            marginBottom: "0.4rem",
-          }}
-        >
-          Drop an image here
-        </p>
-        <p
-          style={{
-            color: "var(--text-dim)",
-            fontSize: "0.8rem",
-            marginBottom: "1.25rem",
-          }}
-        >
-          or choose a file
-        </p>
-        <p
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "0.62rem",
-            letterSpacing: "0.1em",
-            color: "var(--text-dim)",
-            textTransform: "uppercase",
-          }}
-        >
-          {ACCEPTED_EXT}
-        </p>
+        {hasFile ? (
+          /* Compact "replace" variant */
+          <>
+            <RefreshCw
+              size={13}
+              style={{ color: "var(--text-dim)", flexShrink: 0 }}
+              aria-hidden="true"
+            />
+            <p
+              className="t-label"
+              style={{ color: "var(--text-dim)" }}
+            >
+              ANALYSE ANOTHER FILE
+            </p>
+          </>
+        ) : (
+          /* Full drop zone */
+          <>
+            <Upload
+              size={18}
+              style={{ color: "var(--text-dim)", marginBottom: "0.875rem" }}
+              aria-hidden="true"
+            />
+            <p
+              style={{
+                fontFamily:   "var(--font-body)",
+                fontSize:     "var(--text-sm)",
+                color:        dragOver ? "var(--accent)" : "var(--text-muted)",
+                marginBottom: "0.25rem",
+                transition:   "color var(--t-base)",
+              }}
+            >
+              Drop an image here
+            </p>
+            <p
+              style={{
+                fontFamily:   "var(--font-body)",
+                fontSize:     "var(--text-xs)",
+                color:        "var(--text-dim)",
+                marginBottom: "1.25rem",
+              }}
+            >
+              or click to choose a file
+            </p>
+            <p className="t-label">{ACCEPTED_EXT}</p>
+          </>
+        )}
       </div>
 
       <input
@@ -119,13 +151,13 @@ export function ExifUpload({ onFile, loading }: ExifUploadProps) {
 
       {validationError && (
         <p
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "0.7rem",
-            color: "rgba(231,80,80,0.8)",
-            marginTop: "0.75rem",
-          }}
+          className="t-label"
           role="alert"
+          style={{
+            color:      "var(--error)",
+            marginTop:  "0.625rem",
+            letterSpacing: "0.06em",
+          }}
         >
           {validationError}
         </p>

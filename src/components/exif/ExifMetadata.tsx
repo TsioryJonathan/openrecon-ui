@@ -1,280 +1,400 @@
+"use client";
+
 import type { ExifResponse } from "@/types/api";
-import { DataField, Divider } from "@/components/ui";
+import { Divider, SectionHeader, CopyButton } from "@/components/ui";
+import {
+  IconDevice,
+  IconCamera,
+  IconTime,
+  IconLocation,
+  IconFile,
+} from "@/lib/icons";
 
 interface ExifMetadataProps {
   data: ExifResponse;
 }
 
 export function ExifMetadata({ data }: ExifMetadataProps) {
+  // Determine which sections have real data
+  const hasDevice   = !!(data.device?.make || data.device?.model || data.lens);
+  const hasCapture  = !!(data.datetime || data.flash || data.white_balance || data.scene_type);
+  const hasCamera   = !!data.camera_settings && Object.values(data.camera_settings).some((v) => v != null);
+  const hasImage    = !!(data.image?.width || data.image?.height);
+  const hasGps      = !!(data.has_gps && data.gps);
+  const hasSoftware = !!(data.software || data.artist || data.copyright);
+
   return (
-    <div>
-      {/* File header */}
+    <div className="animate-fade-in">
+
+      {/* ── File block ── */}
       <div style={{ marginBottom: "2rem" }}>
-        <p
+        <div
           style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "0.6rem",
-            letterSpacing: "0.12em",
-            color: "var(--text-dim)",
-            marginBottom: "0.5rem",
+            display:    "flex",
+            alignItems: "center",
+            gap:        "0.5rem",
+            marginBottom: "0.75rem",
           }}
         >
-          FILE
-        </p>
-        <p
+          <IconFile size={13} style={{ color: "var(--text-dim)" }} aria-hidden="true" />
+          <p className="t-label">FILE</p>
+        </div>
+        <div
           style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "1.1rem",
-            color: "var(--text)",
-            letterSpacing: "0.02em",
+            display:    "flex",
+            alignItems: "baseline",
+            gap:        "0.75rem",
+            flexWrap:   "wrap",
           }}
         >
-          {data.filename}
-        </p>
+          <p
+            className="t-mono"
+            style={{
+              fontSize:      "var(--text-lg)",
+              color:         "var(--text)",
+              letterSpacing: "0.02em",
+              lineHeight:    1,
+            }}
+          >
+            {data.filename}
+          </p>
+          <CopyButton text={data.filename} label="Copy filename" size={13} />
+        </div>
       </div>
 
       <Divider />
 
-      {/* Device section */}
-      {data.device && (data.device.make || data.device.model) && (
+      {/* ── Device ── */}
+      {hasDevice && (
         <>
-          <Section label="DEVICE">
+          <section aria-label="Device information" style={{ marginBottom: "2rem" }}>
+            <SectionHeader label="DEVICE" icon={<IconDevice size={13} />} />
+
+            {/* Make + model prominent */}
+            {(data.device?.make || data.device?.model) && (
+              <div style={{ marginBottom: "1.25rem" }}>
+                {data.device?.make && (
+                  <p
+                    className="t-label"
+                    style={{ color: "var(--text-dim)", marginBottom: "0.3rem" }}
+                  >
+                    {data.device.make.toUpperCase()}
+                  </p>
+                )}
+                {data.device?.model && (
+                  <p
+                    style={{
+                      fontFamily:    "var(--font-display)",
+                      fontSize:      "var(--text-xl)",
+                      fontWeight:    600,
+                      color:         "var(--text)",
+                      letterSpacing: "-0.02em",
+                      lineHeight:    1.1,
+                    }}
+                  >
+                    {data.device.model}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {data.lens && (
+              <MetaField label="Lens" value={data.lens} mono />
+            )}
+          </section>
+          <Divider />
+        </>
+      )}
+
+      {/* ── Camera settings ── */}
+      {hasCamera && (
+        <>
+          <section aria-label="Camera settings" style={{ marginBottom: "2rem" }}>
+            <SectionHeader label="CAMERA" icon={<IconCamera size={13} />} />
             <div
               style={{
-                display: "grid",
+                display:             "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))",
+                gap:                 "1.25rem 2.5rem",
+              }}
+            >
+              {data.camera_settings?.focal_length != null && (
+                <MetaField
+                  label="Focal Length"
+                  value={`${data.camera_settings.focal_length} mm`}
+                  mono
+                />
+              )}
+              {data.camera_settings?.focal_length_35mm != null && (
+                <MetaField
+                  label="35mm Equiv."
+                  value={`${data.camera_settings.focal_length_35mm} mm`}
+                  mono
+                />
+              )}
+              {data.camera_settings?.f_number != null && (
+                <MetaField
+                  label="Aperture"
+                  value={`f/${data.camera_settings.f_number}`}
+                  mono
+                />
+              )}
+              {data.camera_settings?.exposure_time != null && (
+                <MetaField
+                  label="Exposure"
+                  value={`${data.camera_settings.exposure_time} s`}
+                  mono
+                />
+              )}
+              {data.camera_settings?.iso != null && (
+                <MetaField
+                  label="ISO"
+                  value={String(data.camera_settings.iso)}
+                  mono
+                />
+              )}
+              {data.camera_settings?.exposure_program && (
+                <MetaField
+                  label="Program"
+                  value={data.camera_settings.exposure_program}
+                  mono
+                />
+              )}
+              {data.camera_settings?.exposure_compensation != null && (
+                <MetaField
+                  label="Exp. Comp."
+                  value={`${data.camera_settings.exposure_compensation} EV`}
+                  mono
+                />
+              )}
+            </div>
+          </section>
+          <Divider />
+        </>
+      )}
+
+      {/* ── Capture ── */}
+      {hasCapture && (
+        <>
+          <section aria-label="Capture information" style={{ marginBottom: "2rem" }}>
+            <SectionHeader label="CAPTURE" icon={<IconTime size={13} />} />
+            <div
+              style={{
+                display:             "grid",
                 gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
-                gap: "1.25rem 3rem",
+                gap:                 "1.25rem 2.5rem",
               }}
             >
-              <DataField label="Make" value={data.device.make} mono />
-              <DataField label="Model" value={data.device.model} mono />
-              {data.lens && <DataField label="Lens" value={data.lens} mono />}
+              {data.datetime && (
+                <MetaField label="Date / Time" value={data.datetime} mono />
+              )}
+              {data.flash && (
+                <MetaField label="Flash" value={data.flash} mono />
+              )}
+              {data.white_balance && (
+                <MetaField label="White Balance" value={data.white_balance} mono />
+              )}
+              {data.scene_type && (
+                <MetaField label="Scene Type" value={data.scene_type} mono />
+              )}
             </div>
-          </Section>
+          </section>
           <Divider />
         </>
       )}
 
-      {/* Capture */}
-      {(data.datetime || data.software) && (
+      {/* ── Image technical ── */}
+      {hasImage && (
         <>
-          <Section label="CAPTURE">
+          <section aria-label="Image technical details" style={{ marginBottom: "2rem" }}>
+            <SectionHeader label="TECHNICAL" />
             <div
               style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
-                gap: "1.25rem 3rem",
-              }}
-            >
-              <DataField label="Date / Time" value={data.datetime} mono />
-              <DataField label="Software" value={data.software} mono />
-              <DataField label="Flash" value={data.flash} mono />
-              <DataField label="White Balance" value={data.white_balance} mono />
-              <DataField label="Scene Type" value={data.scene_type} mono />
-            </div>
-          </Section>
-          <Divider />
-        </>
-      )}
-
-      {/* Camera settings */}
-      {data.camera_settings && (
-        <>
-          <Section label="CAMERA SETTINGS">
-            <div
-              style={{
-                display: "grid",
+                display:             "grid",
                 gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
-                gap: "1.25rem 3rem",
+                gap:                 "1.25rem 2.5rem",
               }}
             >
-              <DataField
-                label="Focal Length"
-                value={
-                  data.camera_settings.focal_length != null
-                    ? `${data.camera_settings.focal_length} mm`
-                    : null
-                }
-                mono
-              />
-              <DataField
-                label="35mm Equiv."
-                value={
-                  data.camera_settings.focal_length_35mm != null
-                    ? `${data.camera_settings.focal_length_35mm} mm`
-                    : null
-                }
-                mono
-              />
-              <DataField
-                label="Aperture"
-                value={
-                  data.camera_settings.f_number != null
-                    ? `f/${data.camera_settings.f_number}`
-                    : null
-                }
-                mono
-              />
-              <DataField
-                label="Exposure"
-                value={
-                  data.camera_settings.exposure_time != null
-                    ? `${data.camera_settings.exposure_time} s`
-                    : null
-                }
-                mono
-              />
-              <DataField
-                label="ISO"
-                value={data.camera_settings.iso}
-                mono
-              />
-              <DataField
-                label="Exp. Program"
-                value={data.camera_settings.exposure_program}
-                mono
-              />
-              <DataField
-                label="Exp. Comp."
-                value={
-                  data.camera_settings.exposure_compensation != null
-                    ? `${data.camera_settings.exposure_compensation} EV`
-                    : null
-                }
-                mono
-              />
+              {(data.image?.width && data.image?.height) && (
+                <MetaField
+                  label="Dimensions"
+                  value={`${data.image.width} × ${data.image.height}`}
+                  mono
+                />
+              )}
+              {data.image?.color_space != null && (
+                <MetaField
+                  label="Color Space"
+                  value={String(data.image.color_space)}
+                  mono
+                />
+              )}
+              {data.image?.bits_per_sample != null && (
+                <MetaField
+                  label="Bits / Sample"
+                  value={String(data.image.bits_per_sample)}
+                  mono
+                />
+              )}
             </div>
-          </Section>
+          </section>
           <Divider />
         </>
       )}
 
-      {/* Image dimensions */}
-      {data.image && (data.image.width || data.image.height) && (
+      {/* ── GPS — visually prominent ── */}
+      {hasGps && data.gps && (
         <>
-          <Section label="IMAGE">
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
-                gap: "1.25rem 3rem",
-              }}
-            >
-              <DataField
-                label="Dimensions"
-                value={
-                  data.image.width && data.image.height
-                    ? `${data.image.width} × ${data.image.height}`
-                    : null
-                }
-                mono
-              />
-              <DataField
-                label="Color Space"
-                value={data.image.color_space != null ? String(data.image.color_space) : null}
-                mono
-              />
-              <DataField
-                label="Bits / Sample"
-                value={data.image.bits_per_sample != null ? String(data.image.bits_per_sample) : null}
-                mono
-              />
-            </div>
-          </Section>
-          <Divider />
-        </>
-      )}
+          <section aria-label="GPS location" style={{ marginBottom: "2rem" }}>
+            <SectionHeader label="LOCATION" icon={<IconLocation size={13} />} />
 
-      {/* GPS */}
-      {data.has_gps && data.gps && (
-        <>
-          <Section label="GPS COORDINATES">
+            {/* Coordinates in large mono */}
             <div
               style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
-                gap: "1.25rem 3rem",
+                display:      "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap:          "1.5rem 2rem",
+                marginBottom: "1.5rem",
+                maxWidth:     "380px",
               }}
             >
-              <DataField
-                label="Latitude"
-                value={`${data.gps.lat.toFixed(6)}°`}
-                mono
-              />
-              <DataField
-                label="Longitude"
-                value={`${data.gps.lon.toFixed(6)}°`}
-                mono
-              />
-              {data.gps.altitude != null && (
-                <DataField
+              <div>
+                <p className="t-label" style={{ marginBottom: "0.4rem" }}>LATITUDE</p>
+                <p
+                  className="t-mono"
+                  style={{
+                    fontSize:      "var(--text-xl)",
+                    color:         "var(--text)",
+                    letterSpacing: "0.02em",
+                    lineHeight:    1,
+                  }}
+                >
+                  {data.gps.lat.toFixed(6)}
+                </p>
+              </div>
+              <div>
+                <p className="t-label" style={{ marginBottom: "0.4rem" }}>LONGITUDE</p>
+                <p
+                  className="t-mono"
+                  style={{
+                    fontSize:      "var(--text-xl)",
+                    color:         "var(--text)",
+                    letterSpacing: "0.02em",
+                    lineHeight:    1,
+                  }}
+                >
+                  {data.gps.lon.toFixed(6)}
+                </p>
+              </div>
+            </div>
+
+            {/* Altitude if available */}
+            {data.gps.altitude != null && (
+              <div style={{ marginBottom: "1.25rem" }}>
+                <MetaField
                   label="Altitude"
                   value={`${data.gps.altitude} m`}
                   mono
                 />
-              )}
-              <DataField label="Maps Link" mono>
-                <a
-                  href={`https://www.google.com/maps?q=${data.gps.lat},${data.gps.lon}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "0.75rem",
-                    color: "var(--accent)",
-                    textDecoration: "none",
-                  }}
-                >
-                  {data.gps.lat.toFixed(4)}, {data.gps.lon.toFixed(4)} ↗
-                </a>
-              </DataField>
-            </div>
-          </Section>
+              </div>
+            )}
+
+            {/* Open location CTA */}
+            <a
+              href={`https://www.google.com/maps?q=${data.gps.lat},${data.gps.lon}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Open GPS coordinates in Google Maps (opens in new tab)"
+              style={{
+                display:       "inline-flex",
+                alignItems:    "center",
+                gap:           "0.4rem",
+                fontFamily:    "var(--font-mono)",
+                fontSize:      "var(--text-xs)",
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                color:         "var(--accent)",
+                border:        "1px solid var(--accent)",
+                padding:       "0.4rem 0.875rem",
+                background:    "var(--accent-dim)",
+                transition:    "opacity var(--t-base)",
+                textDecoration: "none",
+              }}
+              className="hover:opacity-70"
+            >
+              <IconLocation size={11} aria-hidden="true" />
+              Open location ↗
+            </a>
+          </section>
           <Divider />
         </>
       )}
 
-      {/* Attribution */}
-      {(data.artist || data.copyright) && (
-        <Section label="ATTRIBUTION">
+      {/* ── Software / Attribution ── */}
+      {hasSoftware && (
+        <section aria-label="Software and attribution">
+          <SectionHeader label="SOFTWARE & ATTRIBUTION" />
           <div
             style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-              gap: "1.25rem 3rem",
+              display:             "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+              gap:                 "1.25rem 2.5rem",
             }}
           >
-            <DataField label="Artist" value={data.artist} mono />
-            <DataField label="Copyright" value={data.copyright} mono />
+            {data.software  && <MetaField label="Software"  value={data.software}  mono />}
+            {data.artist    && <MetaField label="Artist"    value={data.artist}    mono />}
+            {data.copyright && <MetaField label="Copyright" value={data.copyright} mono />}
           </div>
-        </Section>
+        </section>
+      )}
+
+      {/* Empty — no useful metadata found */}
+      {!hasDevice && !hasCamera && !hasCapture && !hasImage && !hasGps && !hasSoftware && (
+        <div style={{ padding: "1.5rem 0" }}>
+          <p className="t-label" style={{ marginBottom: "0.4rem" }}>NO METADATA</p>
+          <p
+            style={{
+              fontFamily: "var(--font-body)",
+              fontSize:   "var(--text-sm)",
+              color:      "var(--text-muted)",
+            }}
+          >
+            No EXIF metadata was found in this file. The image may have been
+            stripped or generated programmatically.
+          </p>
+        </div>
       )}
     </div>
   );
 }
 
-function Section({
+// ─── MetaField ────────────────────────────────────────────────────────────────
+
+function MetaField({
   label,
-  children,
+  value,
+  mono = false,
 }: {
   label: string;
-  children: React.ReactNode;
+  value?: string | null;
+  mono?: boolean;
 }) {
+  if (!value) return null;
   return (
-    <div style={{ marginBottom: "0.5rem" }}>
+    <div>
+      <p className="t-label" style={{ marginBottom: "0.3rem" }}>{label}</p>
       <p
+        className={mono ? "t-mono" : undefined}
         style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: "0.6rem",
-          letterSpacing: "0.12em",
-          color: "var(--text-dim)",
-          marginBottom: "1rem",
-          textTransform: "uppercase",
+          fontFamily: mono ? "var(--font-mono)" : "var(--font-body)",
+          fontSize:   mono ? "var(--text-sm)" : "var(--text-base)",
+          color:      "var(--text)",
+          lineHeight: 1.45,
+          wordBreak:  "break-word",
         }}
       >
-        {label}
+        {value}
       </p>
-      {children}
     </div>
   );
 }
