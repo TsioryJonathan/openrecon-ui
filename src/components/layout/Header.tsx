@@ -116,7 +116,7 @@ export function Header() {
             <span
               style={{
                 fontFamily:    "var(--font-display)",
-                fontSize:      "0.8125rem",
+                fontSize:      "0.875rem",
                 fontWeight:    700,
                 letterSpacing: "0.06em",
                 textTransform: "uppercase",
@@ -145,7 +145,7 @@ export function Header() {
                     gap:           "0.4rem",
                     padding:       "0.4rem 0.75rem",
                     fontFamily:    "var(--font-display)",
-                    fontSize:      "0.75rem",
+                    fontSize:      "0.8125rem",
                     fontWeight:    active ? 700 : 600,
                     letterSpacing: "0.01em",
                     color:         active ? "var(--accent)" : "var(--text-muted)",
