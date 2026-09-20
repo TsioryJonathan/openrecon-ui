@@ -12,6 +12,14 @@ import {
   generateDorks,
   extractExif,
   reconQuery,
+  listInvestigations,
+  createInvestigation,
+  getInvestigation,
+  addTargetToInvestigation,
+  scanInInvestigation,
+  adaptiveScanInInvestigation,
+  correlateInvestigation,
+  closeInvestigation,
 } from "@/lib/api/client";
 import type {
   SitesResponse,
@@ -21,6 +29,11 @@ import type {
   DorkGenerateResponse,
   ExifResponse,
   ReconResponse,
+  InvestigationListResponse,
+  InvestigationSummaryResponse,
+  InvestigationScanResponse,
+  AdaptiveScanResponse,
+  CorrelationResponse,
 } from "@/types/api";
 
 // ─── Query Keys ───────────────────────────────────────────────────────────────
@@ -93,5 +106,133 @@ export function useExtractExif() {
 export function useRecon() {
   return useMutation<ReconResponse, { detail: string }, { query: string }>({
     mutationFn: ({ query }) => reconQuery(query),
+  });
+}
+
+// ─── Investigations ─────────────────────────────────────────────────────────
+
+export function useListInvestigations(
+  status?: string,
+  options?: Partial<UseQueryOptions<InvestigationListResponse>>
+) {
+  return useQuery<InvestigationListResponse>({
+    queryKey: ["investigations", status],
+    queryFn: () => listInvestigations(status),
+    ...options,
+  });
+}
+
+export function useGetInvestigation(
+  id: string,
+  options?: Partial<UseQueryOptions<InvestigationSummaryResponse>>
+) {
+  return useQuery<InvestigationSummaryResponse>({
+    queryKey: ["investigations", id],
+    queryFn: () => getInvestigation(id),
+    enabled: id.length > 0,
+    ...options,
+  });
+}
+
+export function useCreateInvestigation() {
+  return useMutation<
+    InvestigationSummaryResponse,
+    { detail: string },
+    { name: string; description?: string }
+  >({
+    mutationFn: ({ name, description }) =>
+      createInvestigation(name, description),
+  });
+}
+
+export function useAddTarget() {
+  return useMutation<
+    InvestigationSummaryResponse,
+    { detail: string },
+    {
+      investigationId: string;
+      targetType: string;
+      targetValue: string;
+      role?: string;
+    }
+  >({
+    mutationFn: ({ investigationId, targetType, targetValue, role }) =>
+      addTargetToInvestigation(investigationId, targetType, targetValue, role),
+  });
+}
+
+export function useScanInInvestigation() {
+  return useMutation<
+    InvestigationScanResponse,
+    { detail: string },
+    {
+      investigationId: string;
+      targetType: string;
+      targetValue: string;
+      options?: Record<string, unknown>;
+      role?: string;
+    }
+  >({
+    mutationFn: ({ investigationId, targetType, targetValue, options, role }) =>
+      scanInInvestigation(
+        investigationId,
+        targetType,
+        targetValue,
+        options,
+        role
+      ),
+  });
+}
+
+export function useAdaptiveScan() {
+  return useMutation<
+    AdaptiveScanResponse,
+    { detail: string },
+    {
+      investigationId: string;
+      targetType: string;
+      targetValue: string;
+      maxDepth?: number;
+      options?: Record<string, unknown>;
+      role?: string;
+    }
+  >({
+    mutationFn: ({
+      investigationId,
+      targetType,
+      targetValue,
+      maxDepth,
+      options,
+      role,
+    }) =>
+      adaptiveScanInInvestigation(
+        investigationId,
+        targetType,
+        targetValue,
+        maxDepth,
+        options,
+        role
+      ),
+  });
+}
+
+export function useCorrelateInvestigation() {
+  return useMutation<
+    CorrelationResponse,
+    { detail: string },
+    { investigationId: string }
+  >({
+    mutationFn: ({ investigationId }) =>
+      correlateInvestigation(investigationId),
+  });
+}
+
+export function useCloseInvestigation() {
+  return useMutation<
+    InvestigationSummaryResponse,
+    { detail: string },
+    { id: string }
+  >({
+    mutationFn: ({ id }) => closeInvestigation(id),
   });
 }

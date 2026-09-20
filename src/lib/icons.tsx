@@ -11,6 +11,7 @@ export {
   Globe2       as IconRecon,
   ImageIcon    as IconExif,
   SearchCode   as IconDorks,
+  FolderSearch as IconInvestigation,
 
   // Actions
   Search       as IconSearch,
@@ -23,6 +24,11 @@ export {
   X            as IconClose,
   Menu         as IconMenu,
   ArrowRight   as IconArrow,
+  Plus         as IconPlus,
+  Play         as IconPlay,
+  Link2        as IconLink,
+  FileText     as IconReport,
+  FolderOpen   as IconFolderOpen,
 
   // Data / results
   MapPin       as IconLocation,
@@ -32,7 +38,6 @@ export {
   Camera       as IconCamera,
   Clock        as IconTime,
   Shield       as IconSecurity,
-  FileText     as IconFile,
   AlertCircle  as IconError,
   Info         as IconInfo,
 

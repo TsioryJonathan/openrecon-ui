@@ -7,6 +7,11 @@ import type {
   ExifResponse,
   ReconResponse,
   ApiError,
+  InvestigationListResponse,
+  InvestigationSummaryResponse,
+  InvestigationScanResponse,
+  AdaptiveScanResponse,
+  CorrelationResponse,
 } from "@/types/api";
 
 const BASE_URL =
@@ -106,5 +111,121 @@ export async function extractExif(file: File): Promise<ExifResponse> {
 export async function reconQuery(query: string): Promise<ReconResponse> {
   return request<ReconResponse>(
     `/api/recon?query=${encodeURIComponent(query)}`
+  );
+}
+
+// ─── Investigations ─────────────────────────────────────────────────────────
+
+export async function listInvestigations(
+  status?: string,
+  limit = 50,
+  offset = 0
+): Promise<InvestigationListResponse> {
+  const params = new URLSearchParams();
+  if (status) params.set("status", status);
+  params.set("limit", String(limit));
+  params.set("offset", String(offset));
+  return request<InvestigationListResponse>(
+    `/api/investigations?${params.toString()}`
+  );
+}
+
+export async function createInvestigation(
+  name: string,
+  description?: string
+): Promise<InvestigationSummaryResponse> {
+  return request<InvestigationSummaryResponse>("/api/investigations", {
+    method: "POST",
+    body: JSON.stringify({ name, description }),
+  });
+}
+
+export async function getInvestigation(
+  id: string
+): Promise<InvestigationSummaryResponse> {
+  return request<InvestigationSummaryResponse>(
+    `/api/investigations/${id}`
+  );
+}
+
+export async function addTargetToInvestigation(
+  investigationId: string,
+  targetType: string,
+  targetValue: string,
+  role?: string
+): Promise<InvestigationSummaryResponse> {
+  return request<InvestigationSummaryResponse>(
+    `/api/investigations/${investigationId}/targets`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        target_type: targetType,
+        target_value: targetValue,
+        role,
+      }),
+    }
+  );
+}
+
+export async function scanInInvestigation(
+  investigationId: string,
+  targetType: string,
+  targetValue: string,
+  options?: Record<string, unknown>,
+  role?: string
+): Promise<InvestigationScanResponse> {
+  return request<InvestigationScanResponse>(
+    `/api/investigations/${investigationId}/scan`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        target_type: targetType,
+        target_value: targetValue,
+        options,
+        role,
+      }),
+    }
+  );
+}
+
+export async function adaptiveScanInInvestigation(
+  investigationId: string,
+  targetType: string,
+  targetValue: string,
+  maxDepth = 2,
+  options?: Record<string, unknown>,
+  role?: string
+): Promise<AdaptiveScanResponse> {
+  const params = new URLSearchParams();
+  params.set("max_depth", String(maxDepth));
+  return request<AdaptiveScanResponse>(
+    `/api/investigations/${investigationId}/adaptive-scan?${params.toString()}`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        target_type: targetType,
+        target_value: targetValue,
+        options,
+        role,
+      }),
+    }
+  );
+}
+
+export async function correlateInvestigation(
+  investigationId: string
+): Promise<CorrelationResponse> {
+  return request<CorrelationResponse>(
+    `/api/investigations/${investigationId}/correlate`,
+    { method: "POST" }
+  );
+}
+
+export async function closeInvestigation(
+  id: string
+): Promise<InvestigationSummaryResponse> {
+  return request<InvestigationSummaryResponse>(
+    `/api/investigations/${id}/close`,
+    { method: "POST" }
   );
 }

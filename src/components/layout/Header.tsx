@@ -8,6 +8,7 @@ import {
   IconRecon,
   IconExif,
   IconDorks,
+  IconInvestigation,
   IconClose,
   IconMenu,
 } from "@/lib/icons";
@@ -42,6 +43,13 @@ const NAV_ITEMS = [
     Icon:        IconDorks,
     description: "Search intelligence",
     index:       "04",
+  },
+  {
+    label:       "Investigations",
+    href:        "/investigations",
+    Icon:        IconInvestigation,
+    description: "Multi-target investigations",
+    index:       "05",
   },
 ] as const;
 

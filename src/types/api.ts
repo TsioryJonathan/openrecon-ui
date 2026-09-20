@@ -152,3 +152,134 @@ export interface ApiError {
   status: number;
   detail: string;
 }
+
+// ─── Investigations ─────────────────────────────────────────────────────────
+
+export interface InvestigationTargetItem {
+  id: string;
+  type: string;
+  value: string;
+  role: string | null;
+  added_at: string;
+  finding_count: number;
+}
+
+export interface InvestigationSummaryResponse {
+  id: string;
+  name: string;
+  description: string | null;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  target_count: number;
+  finding_count: number;
+  evidence_count: number;
+  targets: InvestigationTargetItem[];
+}
+
+export interface InvestigationListItem {
+  id: string;
+  name: string;
+  description: string | null;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface InvestigationListResponse {
+  total: number;
+  investigations: InvestigationListItem[];
+}
+
+export interface ScanFindingEvidence {
+  id: string;
+  source: string;
+  evidence_type: string;
+  value: string;
+  observed_at: string;
+}
+
+export interface ScanFindingItem {
+  id: string;
+  type: string;
+  value: string;
+  source: string;
+  confidence: string;
+  confidence_reason: string;
+  observed_at: string;
+  evidence: ScanFindingEvidence[];
+}
+
+export interface ScanTargetItem {
+  id: string;
+  type: string;
+  value: string;
+  created_at: string;
+}
+
+export interface ScanResponse {
+  target: ScanTargetItem;
+  finding_count: number;
+  evidence_count: number;
+  modules_run: string[];
+  findings: ScanFindingItem[];
+  errors: string[];
+}
+
+export interface InvestigationScanResponse {
+  scan: ScanResponse;
+  investigation: InvestigationSummaryResponse;
+}
+
+export interface AdaptiveHopItem {
+  depth: number;
+  target_type: string;
+  target_value: string;
+  finding_count: number;
+  evidence_count: number;
+  new_leads: number;
+  errors: string[];
+}
+
+export interface AdaptiveTargetItem {
+  type: string;
+  value: string;
+}
+
+export interface AdaptiveLeadItem {
+  target_type: string;
+  target_value: string;
+  rule: string;
+  source_finding_id: string;
+}
+
+export interface AdaptiveScanResponse {
+  investigation_id: string;
+  max_depth: number;
+  hop_count: number;
+  targets_scanned: AdaptiveTargetItem[];
+  total_finding_count: number;
+  total_evidence_count: number;
+  hops: AdaptiveHopItem[];
+  leads_skipped: Record<string, unknown>[];
+  errors: string[];
+  investigation: InvestigationSummaryResponse;
+}
+
+export interface RelationItem {
+  id: string;
+  source_finding_id: string;
+  target_finding_id: string;
+  relation_type: string;
+  confidence: string;
+  reason: string;
+  created_at: string;
+}
+
+export interface CorrelationResponse {
+  investigation_id: string;
+  relations_created: number;
+  relations_skipped: number;
+  errors: string[];
+  relations: RelationItem[];
+}
