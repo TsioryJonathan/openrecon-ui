@@ -14,7 +14,7 @@ interface DorksResultsProps {
 // Highlights known Google dork operators without a complex parser.
 
 const OPERATOR_PATTERN =
-  /\b(site:|inurl:|intitle:|intext:|filetype:|ext:|cache:|link:|related:|before:|after:|OR|AND)\b/g;
+  /\b(site:|inurl:|intitle:|intext:|filetype:|ext:|cache:|link:|related:|before:|after:|OR|AND)\b/;
 
 function HighlightedQuery({ query }: { query: string }) {
   const parts = query.split(OPERATOR_PATTERN);

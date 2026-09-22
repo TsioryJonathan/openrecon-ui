@@ -19,6 +19,11 @@ import type {
 const BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
+const API_KEY_HEADER: Record<string, string> =
+  process.env.NEXT_PUBLIC_API_KEY
+    ? { "X-API-Key": process.env.NEXT_PUBLIC_API_KEY }
+    : {};
+
 async function request<T>(
   path: string,
   init?: RequestInit
@@ -27,6 +32,7 @@ async function request<T>(
     ...init,
     headers: {
       "Content-Type": "application/json",
+      ...API_KEY_HEADER,
       ...init?.headers,
     },
   });
@@ -90,6 +96,7 @@ export async function extractExif(file: File): Promise<ExifResponse> {
   const res = await fetch(`${BASE_URL}/api/exif/extract`, {
     method: "POST",
     body: formData,
+    headers: API_KEY_HEADER,
     // Do NOT set Content-Type header - browser sets it with boundary
   });
 
@@ -212,7 +219,8 @@ export async function getInvestigationReport(
   format: "json" | "markdown" = "markdown"
 ): Promise<string> {
   const res = await fetch(
-    `${BASE_URL}/api/investigations/${investigationId}/report?format=${format}`
+    `${BASE_URL}/api/investigations/${investigationId}/report?format=${format}`,
+    { headers: API_KEY_HEADER }
   );
 
   if (!res.ok) {
