@@ -225,6 +225,34 @@ export function InvestigationDetail({
         ) : undefined
       }
     >
+      {/* Activity indicator */}
+      {(scanning || adaptiveScanning || correlating) && (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "0.5rem",
+            marginBottom: "2rem",
+            padding: "0.625rem 1rem",
+            borderRadius: "var(--radius-md)",
+            border: "1px solid var(--border-subtle)",
+            background: "var(--surface)",
+            fontFamily: "var(--font-mono)",
+            fontSize: "0.6875rem",
+            letterSpacing: "0.06em",
+            textTransform: "uppercase",
+            color: "var(--accent)",
+          }}
+        >
+          <IconLoading size={12} />
+          {scanning
+            ? "Scanning target..."
+            : adaptiveScanning
+              ? "Adaptive scan in progress..."
+              : "Correlating findings across targets..."}
+        </div>
+      )}
+
       {/* Stats */}
       <div
         style={{

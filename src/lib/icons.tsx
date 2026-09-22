@@ -5,6 +5,10 @@
  * so conventions stay consistent across the app.
  */
 
+import type { ComponentProps } from "react";
+import { Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+
 export {
   // Instruments
   ScanSearch   as IconSherlock,
@@ -41,7 +45,9 @@ export {
   Shield       as IconSecurity,
   AlertCircle  as IconError,
   Info         as IconInfo,
-
-  // States
-  Loader2      as IconLoading,
 } from "lucide-react";
+
+// States - spinner always animates.
+export function IconLoading(props: ComponentProps<typeof Loader2>) {
+  return <Loader2 {...props} className={cn("animate-spin", props.className)} />;
+}
