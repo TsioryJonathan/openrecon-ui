@@ -6,6 +6,7 @@ import {
   ToolPage,
   TextInput,
   ActionButton,
+  GhostButton,
   SectionHeader,
   SkeletonLine,
 } from "@/components/ui";
@@ -13,6 +14,7 @@ import {
   IconInvestigation,
   IconPlay,
   IconLoading,
+  IconPlus,
 } from "@/lib/icons";
 import {
   useGetInvestigation,
@@ -22,6 +24,12 @@ import {
   useCorrelateInvestigation,
   useCloseInvestigation,
 } from "@/hooks/useApi";
+import type {
+  InvestigationSummaryResponse,
+  ScanFindingItem,
+  AdaptiveHopItem,
+  RelationItem,
+} from "@/types/api";
 
 const TARGET_TYPES = ["username", "domain", "ip"];
 
@@ -98,11 +106,11 @@ export function InvestigationDetail({
   }
 
   function handleCorrelate() {
-    correlate(investigationId, { onSuccess: () => refetch() });
+    correlate({ investigationId }, { onSuccess: () => refetch() });
   }
 
   function handleClose() {
-    closeInv(investigationId, { onSuccess: () => refetch() });
+    closeInv({ id: investigationId }, { onSuccess: () => refetch() });
   }
 
   if (isLoading) {
@@ -114,16 +122,8 @@ export function InvestigationDetail({
         icon={<IconInvestigation size={20} />}
       >
         <SkeletonLine width="60%" height="1.25rem" />
-        <SkeletonLine
-          width="100%"
-          height="0.875rem"
-          style={{ marginTop: "1rem" }}
-        />
-        <SkeletonLine
-          width="80%"
-          height="0.875rem"
-          style={{ marginTop: "0.5rem" }}
-        />
+        <SkeletonLine width="100%" height="0.875rem" />
+        <SkeletonLine width="80%" height="0.875rem" />
       </ToolPage>
     );
   }
@@ -161,22 +161,20 @@ export function InvestigationDetail({
       actions={
         isOpen ? (
           <div style={{ display: "flex", gap: "0.5rem" }}>
-            <ActionButton
+            <GhostButton
               onClick={handleCorrelate}
               disabled={correlating}
-              variant="secondary"
-              icon={correlating ? <IconLoading size={14} /> : undefined}
+              icon={correlating ? <IconLoading size={14} /> : <IconPlus size={14} />}
             >
               {correlating ? "Correlating..." : "Correlate"}
-            </ActionButton>
-            <ActionButton
+            </GhostButton>
+            <GhostButton
               onClick={handleClose}
               disabled={closing}
-              variant="secondary"
               icon={closing ? <IconLoading size={14} /> : undefined}
             >
               {closing ? "Closing..." : "Close"}
-            </ActionButton>
+            </GhostButton>
           </div>
         ) : undefined
       }
@@ -245,8 +243,18 @@ export function InvestigationDetail({
           }}
         >
           <SectionHeader
-            title="Add target & scan"
-            subtitle="Add a target to this investigation or run a scan directly"
+            label="Add target & scan"
+            action={
+              <span
+                style={{
+                  fontFamily: "var(--font-body)",
+                  fontSize: "var(--text-xs)",
+                  color: "var(--text-dim)",
+                }}
+              >
+                Add a target to this investigation or run a scan directly
+              </span>
+            }
           />
 
           <form
@@ -332,14 +340,13 @@ export function InvestigationDetail({
               <ActionButton
                 type="submit"
                 disabled={!targetValue.trim() || adding}
-                icon={adding ? <IconLoading size={14} /> : undefined}
+                icon={adding ? <IconLoading size={14} /> : <IconPlus size={14} />}
               >
                 {adding ? "Adding..." : "Add target"}
               </ActionButton>
-              <ActionButton
+              <GhostButton
                 type="button"
                 disabled={!targetValue.trim() || scanning}
-                variant="secondary"
                 icon={
                   scanning ? (
                     <IconLoading size={14} />
@@ -350,11 +357,10 @@ export function InvestigationDetail({
                 onClick={handleScan}
               >
                 {scanning ? "Scanning..." : "Scan"}
-              </ActionButton>
-              <ActionButton
+              </GhostButton>
+              <GhostButton
                 type="button"
                 disabled={!targetValue.trim() || adaptiveScanning}
-                variant="secondary"
                 icon={
                   adaptiveScanning ? (
                     <IconLoading size={14} />
@@ -367,7 +373,7 @@ export function InvestigationDetail({
                 {adaptiveScanning
                   ? "Adaptive scanning..."
                   : "Adaptive scan"}
-              </ActionButton>
+              </GhostButton>
             </div>
           </form>
         </div>
@@ -385,8 +391,18 @@ export function InvestigationDetail({
           }}
         >
           <SectionHeader
-            title="Scan result"
-            subtitle={`${scanResult.scan.finding_count} findings, ${scanResult.scan.evidence_count} evidence, modules: ${scanResult.scan.modules_run.join(", ")}`}
+            label="Scan result"
+            action={
+              <span
+                style={{
+                  fontFamily: "var(--font-body)",
+                  fontSize: "var(--text-xs)",
+                  color: "var(--text-dim)",
+                }}
+              >
+                {scanResult.scan.finding_count} findings, {scanResult.scan.evidence_count} evidence, modules: {scanResult.scan.modules_run.join(", ")}
+              </span>
+            }
           />
           {scanResult.scan.errors.length > 0 && (
             <div style={{ marginTop: "0.75rem" }}>
@@ -424,8 +440,18 @@ export function InvestigationDetail({
           }}
         >
           <SectionHeader
-            title="Adaptive scan result"
-            subtitle={`${adaptiveResult.hop_count} hops, ${adaptiveResult.total_finding_count} findings, ${adaptiveResult.targets_scanned.length} targets scanned`}
+            label="Adaptive scan result"
+            action={
+              <span
+                style={{
+                  fontFamily: "var(--font-body)",
+                  fontSize: "var(--text-xs)",
+                  color: "var(--text-dim)",
+                }}
+              >
+                {adaptiveResult.hop_count} hops, {adaptiveResult.total_finding_count} findings, {adaptiveResult.targets_scanned.length} targets scanned
+              </span>
+            }
           />
           <div style={{ marginTop: "1rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
             {adaptiveResult.hops.map((hop) => (
@@ -447,8 +473,18 @@ export function InvestigationDetail({
           }}
         >
           <SectionHeader
-            title="Correlation result"
-            subtitle={`${corrResult.relations_created} relations created, ${corrResult.relations_skipped} skipped`}
+            label="Correlation result"
+            action={
+              <span
+                style={{
+                  fontFamily: "var(--font-body)",
+                  fontSize: "var(--text-xs)",
+                  color: "var(--text-dim)",
+                }}
+              >
+                {corrResult.relations_created} relations created, {corrResult.relations_skipped} skipped
+              </span>
+            }
           />
           <div style={{ marginTop: "1rem", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
             {corrResult.relations.map((r) => (
@@ -469,8 +505,18 @@ export function InvestigationDetail({
           }}
         >
           <SectionHeader
-            title="Targets"
-            subtitle={`${inv.targets.length} target(s) in this investigation`}
+            label="Targets"
+            action={
+              <span
+                style={{
+                  fontFamily: "var(--font-body)",
+                  fontSize: "var(--text-xs)",
+                  color: "var(--text-dim)",
+                }}
+              >
+                {inv.targets.length} target(s) in this investigation
+              </span>
+            }
           />
           <div style={{ marginTop: "1rem", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
             {inv.targets.map((t) => (

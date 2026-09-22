@@ -79,8 +79,19 @@ export function InvestigationsTool() {
         }}
       >
         <SectionHeader
-          title="New investigation"
-          subtitle="Create a container for correlated OSINT targets"
+          label="New investigation"
+          icon={<IconPlus size={12} />}
+          action={
+            <span
+              style={{
+                fontFamily: "var(--font-body)",
+                fontSize: "var(--text-xs)",
+                color: "var(--text-dim)",
+              }}
+            >
+              Create a container for correlated OSINT targets
+            </span>
+          }
         />
 
         <form onSubmit={handleCreate} style={{ marginTop: "1rem" }}>
@@ -171,7 +182,7 @@ export function InvestigationsTool() {
               }}
             >
               <SkeletonLine width="40%" height="1rem" />
-              <SkeletonLine width="70%" height="0.75rem" style={{ marginTop: "0.5rem" }} />
+              <SkeletonLine width="70%" height="0.75rem" />
             </div>
           ))}
         </div>
