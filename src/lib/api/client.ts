@@ -11,6 +11,7 @@ import type {
   InvestigationSummaryResponse,
   InvestigationScanResponse,
   InvestigationTargetFindingsResponse,
+  InvestigationRelationsResponse,
   AdaptiveScanResponse,
   CorrelationResponse,
 } from "@/types/api";
@@ -196,6 +197,37 @@ export async function getTargetFindings(
   return request<InvestigationTargetFindingsResponse>(
     `/api/investigations/${investigationId}/targets/${targetId}/findings`
   );
+}
+
+export async function getInvestigationRelations(
+  investigationId: string
+): Promise<InvestigationRelationsResponse> {
+  return request<InvestigationRelationsResponse>(
+    `/api/investigations/${investigationId}/relations`
+  );
+}
+
+export async function getInvestigationReport(
+  investigationId: string,
+  format: "json" | "markdown" = "markdown"
+): Promise<string> {
+  const res = await fetch(
+    `${BASE_URL}/api/investigations/${investigationId}/report?format=${format}`
+  );
+
+  if (!res.ok) {
+    let detail = `HTTP ${res.status}`;
+    try {
+      const body = await res.json();
+      detail = body.detail ?? detail;
+    } catch {
+      // ignore parse errors
+    }
+    const err: ApiError = { status: res.status, detail };
+    throw err;
+  }
+
+  return res.text();
 }
 
 export async function adaptiveScanInInvestigation(

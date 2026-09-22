@@ -18,6 +18,8 @@ import {
   addTargetToInvestigation,
   scanInInvestigation,
   getTargetFindings,
+  getInvestigationRelations,
+  getInvestigationReport,
   adaptiveScanInInvestigation,
   correlateInvestigation,
   closeInvestigation,
@@ -34,6 +36,7 @@ import type {
   InvestigationSummaryResponse,
   InvestigationScanResponse,
   InvestigationTargetFindingsResponse,
+  InvestigationRelationsResponse,
   AdaptiveScanResponse,
   CorrelationResponse,
 } from "@/types/api";
@@ -249,5 +252,29 @@ export function useTargetFindings(
     queryFn: () => getTargetFindings(investigationId, targetId as string),
     enabled: !!targetId && investigationId.length > 0,
     ...options,
+  });
+}
+
+export function useInvestigationRelations(
+  investigationId: string,
+  enabled = true,
+  options?: Partial<UseQueryOptions<InvestigationRelationsResponse>>
+) {
+  return useQuery<InvestigationRelationsResponse, { detail: string }>({
+    queryKey: ["investigations", investigationId, "relations"],
+    queryFn: () => getInvestigationRelations(investigationId),
+    enabled: enabled && investigationId.length > 0,
+    ...options,
+  });
+}
+
+export function useInvestigationReport(
+  investigationId: string,
+  enabled = true
+) {
+  return useQuery<string, { detail: string }>({
+    queryKey: ["investigations", investigationId, "report", "markdown"],
+    queryFn: () => getInvestigationReport(investigationId, "markdown"),
+    enabled: enabled && investigationId.length > 0,
   });
 }

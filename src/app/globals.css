@@ -75,6 +75,12 @@
   --t-fast:   0.1s ease;
   --t-base:   0.15s ease;
   --t-slow:   0.25s ease;
+
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
 }
 
 /* ─── Tailwind theme bridge ─────────────────────────────────────────────────── */
@@ -260,4 +266,132 @@ a {
 .section-divider {
   border-top: 1px solid var(--border-subtle);
   margin: var(--space-8) 0;
+}
+
+/* ─── Report markdown ───────────────────────────────────────────────────────── */
+
+.md-report {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  line-height: 1.7;
+  color: var(--text-muted);
+  word-break: break-word;
+}
+
+.md-report > * + * {
+  margin-top: 1rem;
+}
+
+.md-report h1,
+.md-report h2,
+.md-report h3 {
+  font-family: var(--font-display);
+  color: var(--text);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.md-report h1 {
+  font-size: var(--text-xl);
+  font-weight: 700;
+}
+
+.md-report h2 {
+  font-size: var(--text-lg);
+  font-weight: 650;
+  margin-top: 1.75rem;
+  padding-bottom: 0.375rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.md-report h3 {
+  font-size: var(--text-base);
+  font-weight: 600;
+}
+
+.md-report p {
+  color: var(--text-muted);
+}
+
+.md-report a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.md-report strong {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.md-report ul,
+.md-report ol {
+  padding-left: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.md-report li::marker {
+  color: var(--text-dim);
+}
+
+.md-report hr {
+  border: none;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.md-report blockquote {
+  border-left: 2px solid var(--accent);
+  padding-left: 1rem;
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+.md-report code {
+  font-family: var(--font-mono);
+  font-size: 0.75em;
+  color: var(--accent);
+  background: var(--accent-dim);
+  padding: 0.1rem 0.3rem;
+  border-radius: var(--radius-sm);
+}
+
+.md-report pre {
+  background: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+.md-report pre code {
+  background: none;
+  color: var(--text-muted);
+  padding: 0;
+}
+
+.md-report table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+}
+
+.md-report thead th {
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.md-report tbody td {
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0.5rem 0.75rem;
+  vertical-align: top;
 }

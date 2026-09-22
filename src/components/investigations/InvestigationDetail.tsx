@@ -16,6 +16,7 @@ import {
   IconLoading,
   IconPlus,
   IconClose,
+  IconFile,
 } from "@/lib/icons";
 import {
   useGetInvestigation,
@@ -26,11 +27,15 @@ import {
   useCloseInvestigation,
   useTargetFindings,
 } from "@/hooks/useApi";
+import {
+  RelationsModal,
+  ReportModal,
+  RelationRow,
+} from "./InvestigationModals";
 import type {
   InvestigationTargetItem,
   ScanFindingItem,
   AdaptiveHopItem,
-  RelationItem,
 } from "@/types/api";
 
 const TARGET_TYPES = ["username", "domain", "ip"];
@@ -47,6 +52,8 @@ export function InvestigationDetail({
   const [maxDepth, setMaxDepth] = useState(2);
   const [scanningTargetId, setScanningTargetId] = useState<string | null>(null);
   const [findingsTargetId, setFindingsTargetId] = useState<string | null>(null);
+  const [relationsOpen, setRelationsOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
 
   const { mutate: addTarget, isPending: adding } = useAddTarget();
   const {
@@ -188,6 +195,18 @@ export function InvestigationDetail({
       actions={
         isOpen ? (
           <div style={{ display: "flex", gap: "0.5rem" }}>
+            <GhostButton
+              onClick={() => setRelationsOpen(true)}
+              icon={<IconInvestigation size={14} />}
+            >
+              Relations
+            </GhostButton>
+            <GhostButton
+              onClick={() => setReportOpen(true)}
+              icon={<IconFile size={14} />}
+            >
+              Report
+            </GhostButton>
             <GhostButton
               onClick={handleCorrelate}
               disabled={correlating}
@@ -720,6 +739,22 @@ export function InvestigationDetail({
           </div>
         </div>
       )}
+
+      {/* Relations modal */}
+      {relationsOpen && (
+        <RelationsModal
+          investigationId={investigationId}
+          onClose={() => setRelationsOpen(false)}
+        />
+      )}
+
+      {/* Report modal */}
+      {reportOpen && (
+        <ReportModal
+          investigationId={investigationId}
+          onClose={() => setReportOpen(false)}
+        />
+      )}
     </ToolPage>
   );
 }
@@ -881,58 +916,6 @@ function HopRow({ hop }: { hop: AdaptiveHopItem }) {
         <span>{hop.finding_count} findings</span>
         <span>{hop.evidence_count} evidence</span>
         <span>{hop.new_leads} new leads</span>
-      </div>
-    </div>
-  );
-}
-
-function RelationRow({ relation }: { relation: RelationItem }) {
-  return (
-    <div
-      style={{
-        padding: "0.625rem 0.875rem",
-        borderRadius: "var(--radius-md)",
-        border: "1px solid var(--border-subtle)",
-        background: "var(--bg)",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "0.625rem",
-        }}
-      >
-        <span
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "0.625rem",
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            color: "var(--accent)",
-          }}
-        >
-          {relation.relation_type}
-        </span>
-        <span
-          style={{
-            fontFamily: "var(--font-body)",
-            fontSize: "var(--text-xs)",
-            color: "var(--text-muted)",
-          }}
-        >
-          {relation.reason}
-        </span>
-        <span
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "0.5625rem",
-            color: "var(--text-dim)",
-            marginLeft: "auto",
-          }}
-        >
-          {relation.confidence}
-        </span>
       </div>
     </div>
   );

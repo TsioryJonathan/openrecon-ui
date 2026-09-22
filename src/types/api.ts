@@ -237,6 +237,12 @@ export interface InvestigationTargetFindingsResponse {
   findings: ScanFindingItem[];
 }
 
+export interface InvestigationRelationsResponse {
+  investigation_id: string;
+  relation_count: number;
+  relations: RelationItem[];
+}
+
 export interface AdaptiveHopItem {
   depth: number;
   target_type: string;
