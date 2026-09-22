@@ -10,6 +10,7 @@ import type {
   InvestigationListResponse,
   InvestigationSummaryResponse,
   InvestigationScanResponse,
+  InvestigationTargetFindingsResponse,
   AdaptiveScanResponse,
   CorrelationResponse,
 } from "@/types/api";
@@ -185,6 +186,15 @@ export async function scanInInvestigation(
         role,
       }),
     }
+  );
+}
+
+export async function getTargetFindings(
+  investigationId: string,
+  targetId: string
+): Promise<InvestigationTargetFindingsResponse> {
+  return request<InvestigationTargetFindingsResponse>(
+    `/api/investigations/${investigationId}/targets/${targetId}/findings`
   );
 }
 

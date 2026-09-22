@@ -231,6 +231,12 @@ export interface InvestigationScanResponse {
   investigation: InvestigationSummaryResponse;
 }
 
+export interface InvestigationTargetFindingsResponse {
+  target_id: string;
+  finding_count: number;
+  findings: ScanFindingItem[];
+}
+
 export interface AdaptiveHopItem {
   depth: number;
   target_type: string;

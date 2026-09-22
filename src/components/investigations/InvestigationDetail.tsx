@@ -15,6 +15,7 @@ import {
   IconPlay,
   IconLoading,
   IconPlus,
+  IconClose,
 } from "@/lib/icons";
 import {
   useGetInvestigation,
@@ -23,9 +24,10 @@ import {
   useAdaptiveScan,
   useCorrelateInvestigation,
   useCloseInvestigation,
+  useTargetFindings,
 } from "@/hooks/useApi";
 import type {
-  InvestigationSummaryResponse,
+  InvestigationTargetItem,
   ScanFindingItem,
   AdaptiveHopItem,
   RelationItem,
@@ -43,6 +45,8 @@ export function InvestigationDetail({
   const [targetType, setTargetType] = useState("username");
   const [targetValue, setTargetValue] = useState("");
   const [maxDepth, setMaxDepth] = useState(2);
+  const [scanningTargetId, setScanningTargetId] = useState<string | null>(null);
+  const [findingsTargetId, setFindingsTargetId] = useState<string | null>(null);
 
   const { mutate: addTarget, isPending: adding } = useAddTarget();
   const {
@@ -61,6 +65,11 @@ export function InvestigationDetail({
     data: corrResult,
   } = useCorrelateInvestigation();
   const { mutate: closeInv, isPending: closing } = useCloseInvestigation();
+
+  const { data: findingsData, isLoading: findingsLoading } = useTargetFindings(
+    investigationId,
+    findingsTargetId
+  );
 
   function handleAddTarget(e: React.FormEvent) {
     e.preventDefault();
@@ -89,6 +98,24 @@ export function InvestigationDetail({
         targetValue: targetValue.trim(),
       },
       { onSuccess: () => refetch() }
+    );
+  }
+
+  function handleScanTarget(t: InvestigationTargetItem) {
+    setScanningTargetId(t.id);
+    scan(
+      {
+        investigationId,
+        targetType: t.type,
+        targetValue: t.value,
+      },
+      {
+        onSuccess: () => {
+          setScanningTargetId(null);
+          refetch();
+        },
+        onError: () => setScanningTargetId(null),
+      }
     );
   }
 
@@ -494,7 +521,7 @@ export function InvestigationDetail({
         </div>
       )}
 
-      {/* Targets list */}
+      {/* Targets list with per-target Scan + Findings */}
       {inv.targets.length > 0 && (
         <div
           style={{
@@ -506,6 +533,7 @@ export function InvestigationDetail({
         >
           <SectionHeader
             label="Targets"
+            count={inv.targets.length}
             action={
               <span
                 style={{
@@ -514,7 +542,7 @@ export function InvestigationDetail({
                   color: "var(--text-dim)",
                 }}
               >
-                {inv.targets.length} target(s) in this investigation
+                Click a target to scan it or view its findings
               </span>
             }
           />
@@ -532,7 +560,7 @@ export function InvestigationDetail({
                   background: "var(--bg)",
                 }}
               >
-                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flex: 1, minWidth: 0 }}>
                   <span
                     style={{
                       fontFamily: "var(--font-mono)",
@@ -544,6 +572,7 @@ export function InvestigationDetail({
                       borderRadius: "999px",
                       border: "1px solid rgba(231,168,62,0.2)",
                       background: "var(--accent-dim)",
+                      flexShrink: 0,
                     }}
                   >
                     {t.type}
@@ -553,6 +582,9 @@ export function InvestigationDetail({
                       fontFamily: "var(--font-body)",
                       fontSize: "var(--text-sm)",
                       color: "var(--text)",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
                     }}
                   >
                     {t.value}
@@ -563,23 +595,128 @@ export function InvestigationDetail({
                         fontFamily: "var(--font-mono)",
                         fontSize: "0.625rem",
                         color: "var(--text-dim)",
+                        flexShrink: 0,
                       }}
                     >
                       {t.role}
                     </span>
                   )}
+                  <span
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "0.625rem",
+                      color: "var(--text-dim)",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {t.finding_count} findings
+                  </span>
                 </div>
-                <span
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "0.625rem",
-                    color: "var(--text-dim)",
-                  }}
-                >
-                  {t.finding_count} findings
-                </span>
+                <div style={{ display: "flex", gap: "0.5rem", flexShrink: 0, marginLeft: "0.75rem" }}>
+                  <GhostButton
+                    type="button"
+                    onClick={() => setFindingsTargetId(t.id)}
+                    disabled={t.finding_count === 0}
+                    icon={<IconInvestigation size={12} />}
+                  >
+                    Findings
+                  </GhostButton>
+                  {isOpen && (
+                    <GhostButton
+                      type="button"
+                      onClick={() => handleScanTarget(t)}
+                      disabled={scanning || scanningTargetId === t.id}
+                      icon={
+                        scanningTargetId === t.id ? (
+                          <IconLoading size={12} />
+                        ) : (
+                          <IconPlay size={12} />
+                        )
+                      }
+                    >
+                      {scanningTargetId === t.id ? "Scanning..." : "Scan"}
+                    </GhostButton>
+                  )}
+                </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Findings modal */}
+      {findingsTargetId && (
+        <div
+          onClick={() => setFindingsTargetId(null)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.6)",
+            backdropFilter: "blur(4px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+            padding: "2rem",
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "var(--surface)",
+              border: "1px solid var(--border-subtle)",
+              borderRadius: "var(--radius-lg)",
+              padding: "1.5rem",
+              width: "100%",
+              maxWidth: "42rem",
+              maxHeight: "80vh",
+              overflowY: "auto",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: "1rem",
+              }}
+            >
+              <SectionHeader
+                label="Findings"
+                count={findingsData?.finding_count ?? 0}
+              />
+              <GhostButton
+                type="button"
+                onClick={() => setFindingsTargetId(null)}
+                icon={<IconClose size={14} />}
+              >
+                Close
+              </GhostButton>
+            </div>
+
+            {findingsLoading ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                <SkeletonLine width="100%" height="0.875rem" />
+                <SkeletonLine width="80%" height="0.875rem" />
+                <SkeletonLine width="60%" height="0.875rem" />
+              </div>
+            ) : findingsData && findingsData.findings.length > 0 ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                {findingsData.findings.map((f) => (
+                  <FindingRow key={f.id} finding={f} />
+                ))}
+              </div>
+            ) : (
+              <p
+                style={{
+                  fontFamily: "var(--font-body)",
+                  fontSize: "var(--text-sm)",
+                  color: "var(--text-dim)",
+                }}
+              >
+                No findings for this target yet.
+              </p>
+            )}
           </div>
         </div>
       )}
@@ -652,6 +789,33 @@ function FindingRow({ finding }: { finding: ScanFindingItem }) {
         >
           {finding.confidence_reason}
         </p>
+      )}
+      {finding.evidence.length > 0 && (
+        <div
+          style={{
+            marginTop: "0.375rem",
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "0.375rem",
+          }}
+        >
+          {finding.evidence.map((e) => (
+            <span
+              key={e.id}
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "0.5625rem",
+                color: "var(--text-dim)",
+                border: "1px solid var(--border-subtle)",
+                padding: "0.125rem 0.375rem",
+                borderRadius: "var(--radius-sm)",
+                background: "var(--surface)",
+              }}
+            >
+              {e.evidence_type}: {e.value}
+            </span>
+          ))}
+        </div>
       )}
     </div>
   );
