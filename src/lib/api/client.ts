@@ -19,11 +19,6 @@ import type {
 const BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
-const API_KEY_HEADER: Record<string, string> =
-  process.env.NEXT_PUBLIC_API_KEY
-    ? { "X-API-Key": process.env.NEXT_PUBLIC_API_KEY }
-    : {};
-
 async function request<T>(
   path: string,
   init?: RequestInit
@@ -32,7 +27,6 @@ async function request<T>(
     ...init,
     headers: {
       "Content-Type": "application/json",
-      ...API_KEY_HEADER,
       ...init?.headers,
     },
   });
@@ -49,6 +43,37 @@ async function request<T>(
     throw err;
   }
 
+  return res.json() as Promise<T>;
+}
+
+async function proxyRequest<T>(
+  path: string,
+  init?: RequestInit,
+  raw = false
+): Promise<T> {
+  const res = await fetch(`/api/investigations${path}`, {
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      ...init?.headers,
+    },
+  });
+
+  if (!res.ok) {
+    let detail = `HTTP ${res.status}`;
+    try {
+      const body = await res.json();
+      detail = body.detail ?? detail;
+    } catch {
+      // ignore parse errors
+    }
+    const err: ApiError = { status: res.status, detail };
+    throw err;
+  }
+
+  if (raw) {
+    return res.text() as Promise<T>;
+  }
   return res.json() as Promise<T>;
 }
 
@@ -96,7 +121,6 @@ export async function extractExif(file: File): Promise<ExifResponse> {
   const res = await fetch(`${BASE_URL}/api/exif/extract`, {
     method: "POST",
     body: formData,
-    headers: API_KEY_HEADER,
     // Do NOT set Content-Type header - browser sets it with boundary
   });
 
@@ -134,8 +158,8 @@ export async function listInvestigations(
   if (status) params.set("status", status);
   params.set("limit", String(limit));
   params.set("offset", String(offset));
-  return request<InvestigationListResponse>(
-    `/api/investigations?${params.toString()}`
+  return proxyRequest<InvestigationListResponse>(
+    `?${params.toString()}`
   );
 }
 
@@ -143,7 +167,7 @@ export async function createInvestigation(
   name: string,
   description?: string
 ): Promise<InvestigationSummaryResponse> {
-  return request<InvestigationSummaryResponse>("/api/investigations", {
+  return proxyRequest<InvestigationSummaryResponse>("", {
     method: "POST",
     body: JSON.stringify({ name, description }),
   });
@@ -152,9 +176,7 @@ export async function createInvestigation(
 export async function getInvestigation(
   id: string
 ): Promise<InvestigationSummaryResponse> {
-  return request<InvestigationSummaryResponse>(
-    `/api/investigations/${id}`
-  );
+  return proxyRequest<InvestigationSummaryResponse>(`/${id}`);
 }
 
 export async function addTargetToInvestigation(
@@ -163,8 +185,8 @@ export async function addTargetToInvestigation(
   targetValue: string,
   role?: string
 ): Promise<InvestigationSummaryResponse> {
-  return request<InvestigationSummaryResponse>(
-    `/api/investigations/${investigationId}/targets`,
+  return proxyRequest<InvestigationSummaryResponse>(
+    `/${investigationId}/targets`,
     {
       method: "POST",
       body: JSON.stringify({
@@ -183,8 +205,8 @@ export async function scanInInvestigation(
   options?: Record<string, unknown>,
   role?: string
 ): Promise<InvestigationScanResponse> {
-  return request<InvestigationScanResponse>(
-    `/api/investigations/${investigationId}/scan`,
+  return proxyRequest<InvestigationScanResponse>(
+    `/${investigationId}/scan`,
     {
       method: "POST",
       body: JSON.stringify({
@@ -201,16 +223,16 @@ export async function getTargetFindings(
   investigationId: string,
   targetId: string
 ): Promise<InvestigationTargetFindingsResponse> {
-  return request<InvestigationTargetFindingsResponse>(
-    `/api/investigations/${investigationId}/targets/${targetId}/findings`
+  return proxyRequest<InvestigationTargetFindingsResponse>(
+    `/${investigationId}/targets/${targetId}/findings`
   );
 }
 
 export async function getInvestigationRelations(
   investigationId: string
 ): Promise<InvestigationRelationsResponse> {
-  return request<InvestigationRelationsResponse>(
-    `/api/investigations/${investigationId}/relations`
+  return proxyRequest<InvestigationRelationsResponse>(
+    `/${investigationId}/relations`
   );
 }
 
@@ -218,24 +240,11 @@ export async function getInvestigationReport(
   investigationId: string,
   format: "json" | "markdown" = "markdown"
 ): Promise<string> {
-  const res = await fetch(
-    `${BASE_URL}/api/investigations/${investigationId}/report?format=${format}`,
-    { headers: API_KEY_HEADER }
+  return proxyRequest<string>(
+    `/${investigationId}/report?format=${format}`,
+    {},
+    true
   );
-
-  if (!res.ok) {
-    let detail = `HTTP ${res.status}`;
-    try {
-      const body = await res.json();
-      detail = body.detail ?? detail;
-    } catch {
-      // ignore parse errors
-    }
-    const err: ApiError = { status: res.status, detail };
-    throw err;
-  }
-
-  return res.text();
 }
 
 export async function adaptiveScanInInvestigation(
@@ -248,8 +257,8 @@ export async function adaptiveScanInInvestigation(
 ): Promise<AdaptiveScanResponse> {
   const params = new URLSearchParams();
   params.set("max_depth", String(maxDepth));
-  return request<AdaptiveScanResponse>(
-    `/api/investigations/${investigationId}/adaptive-scan?${params.toString()}`,
+  return proxyRequest<AdaptiveScanResponse>(
+    `/${investigationId}/adaptive-scan?${params.toString()}`,
     {
       method: "POST",
       body: JSON.stringify({
@@ -265,8 +274,8 @@ export async function adaptiveScanInInvestigation(
 export async function correlateInvestigation(
   investigationId: string
 ): Promise<CorrelationResponse> {
-  return request<CorrelationResponse>(
-    `/api/investigations/${investigationId}/correlate`,
+  return proxyRequest<CorrelationResponse>(
+    `/${investigationId}/correlate`,
     { method: "POST" }
   );
 }
@@ -274,8 +283,8 @@ export async function correlateInvestigation(
 export async function closeInvestigation(
   id: string
 ): Promise<InvestigationSummaryResponse> {
-  return request<InvestigationSummaryResponse>(
-    `/api/investigations/${id}/close`,
+  return proxyRequest<InvestigationSummaryResponse>(
+    `/${id}/close`,
     { method: "POST" }
   );
 }

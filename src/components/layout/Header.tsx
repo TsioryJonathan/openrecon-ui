@@ -12,6 +12,7 @@ import {
   IconClose,
   IconMenu,
 } from "@/lib/icons";
+import { AuthStatus } from "@/components/auth/AuthStatus";
 
 // ─── Nav items with icons and descriptions ────────────────────────────────────
 
@@ -207,27 +208,32 @@ export function Header() {
             })}
           </nav>
 
-          {/* ── Mobile toggle ── */}
-          <button
-            onClick={() => setMobileOpen((v) => !v)}
-            aria-label={mobileOpen ? "Close navigation" : "Open navigation"}
-            aria-expanded={mobileOpen}
-            aria-controls="mobile-nav"
-            style={{
-              display:    "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              background: "transparent",
-              border:     "none",
-              color:      "var(--text-muted)",
-              padding:    "0.375rem",
-              cursor:     "pointer",
-              transition: "color 0.15s ease",
-            }}
-            className="md:hidden hover:text-[var(--text)]"
-          >
-            {mobileOpen ? <IconClose size={18} /> : <IconMenu size={18} />}
-          </button>
+          {/* ── Auth status + mobile toggle ── */}
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexShrink: 0 }}>
+            <div className="hidden md:block">
+              <AuthStatus />
+            </div>
+            <button
+              onClick={() => setMobileOpen((v) => !v)}
+              aria-label={mobileOpen ? "Close navigation" : "Open navigation"}
+              aria-expanded={mobileOpen}
+              aria-controls="mobile-nav"
+              style={{
+                display:    "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "transparent",
+                border:     "none",
+                color:      "var(--text-muted)",
+                padding:    "0.375rem",
+                cursor:     "pointer",
+                transition: "color 0.15s ease",
+              }}
+              className="md:hidden hover:text-[var(--text)]"
+            >
+              {mobileOpen ? <IconClose size={18} /> : <IconMenu size={18} />}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -251,6 +257,14 @@ export function Header() {
         >
           {/* Divider */}
           <div style={{ borderTop: "1px solid var(--border-subtle)", marginBottom: "0.5rem" }} />
+
+          <div
+            role="group"
+            aria-label="Account"
+            style={{ padding: "0.75rem 0", borderBottom: "1px solid var(--border-subtle)" }}
+          >
+            <AuthStatus />
+          </div>
 
           <nav aria-label="Mobile navigation">
             {NAV_ITEMS.map(({ label, href, Icon, description, index }) => {
