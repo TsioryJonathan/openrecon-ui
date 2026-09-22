@@ -28,6 +28,7 @@ export {
   Play         as IconPlay,
   Link2        as IconLink,
   FileText     as IconReport,
+  FileText     as IconFile,
   FolderOpen   as IconFolderOpen,
 
   // Data / results
