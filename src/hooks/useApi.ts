@@ -260,7 +260,7 @@ export function useInvestigationRelations(
   enabled = true,
   options?: Partial<UseQueryOptions<InvestigationRelationsResponse>>
 ) {
-  return useQuery<InvestigationRelationsResponse, { detail: string }>({
+  return useQuery<InvestigationRelationsResponse>({
     queryKey: ["investigations", investigationId, "relations"],
     queryFn: () => getInvestigationRelations(investigationId),
     enabled: enabled && investigationId.length > 0,
@@ -272,7 +272,7 @@ export function useInvestigationReport(
   investigationId: string,
   enabled = true
 ) {
-  return useQuery<string, { detail: string }>({
+  return useQuery<string>({
     queryKey: ["investigations", investigationId, "report", "markdown"],
     queryFn: () => getInvestigationReport(investigationId, "markdown"),
     enabled: enabled && investigationId.length > 0,

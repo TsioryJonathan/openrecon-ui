@@ -105,7 +105,10 @@ export function RelationsModal({
   } else if (isError) {
     body = (
       <RequestError
-        message={error?.detail ?? "Failed to load relations."}
+        message={
+          (error as { detail?: string } | null)?.detail ??
+          "Failed to load relations."
+        }
         onRetry={refetch}
       />
     );
@@ -164,7 +167,10 @@ export function ReportModal({
   } else if (isError) {
     body = (
       <RequestError
-        message={error?.detail ?? "Failed to load the report."}
+        message={
+          (error as { detail?: string } | null)?.detail ??
+          "Failed to load the report."
+        }
         onRetry={refetch}
       />
     );
