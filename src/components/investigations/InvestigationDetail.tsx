@@ -32,6 +32,7 @@ import {
   ReportModal,
   RelationRow,
 } from "./InvestigationModals";
+import { InvestigationGraphProvider } from "./InvestmentGraph";
 import type {
   InvestigationTargetItem,
   ScanFindingItem,
@@ -567,6 +568,8 @@ export function InvestigationDetail({
           </div>
         </div>
       )}
+
+      <InvestigationGraphProvider investigationId={investigationId} />
 
       {/* Targets list with per-target Scan + Findings */}
       {inv.targets.length > 0 && (

@@ -286,6 +286,12 @@ export interface RelationItem {
   confidence: string;
   reason: string;
   created_at: string;
+  source_finding_type: string | null;
+  source_finding_value: string | null;
+  source_finding_target_id: string | null;
+  target_finding_type: string | null;
+  target_finding_value: string | null;
+  target_finding_target_id: string | null;
 }
 
 export interface CorrelationResponse {
