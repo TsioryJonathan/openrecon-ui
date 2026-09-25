@@ -156,7 +156,7 @@ export function InvestigationGraph({ investigationId }: { investigationId: strin
   const targets: InvestigationTargetItem[] = inv?.targets ?? [];
   const relations: RelationItem[] = relData?.relations ?? [];
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const expandedFindings = useTargetFindings(investigationId, expandedId ?? undefined);
+  const expandedFindings = useTargetFindings(investigationId, expandedId);
 
   const gNodes: Node[] = useMemo(
     () =>
