@@ -13,17 +13,19 @@
  * @xyflow/react (installe dans package.json).
  */
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   ReactFlow,
   ReactFlowProvider,
   Background,
   Controls,
   MiniMap,
-  useNodesState,
-  useEdgesState,
+  applyNodeChanges,
+  applyEdgeChanges,
   type Node,
   type Edge,
+  type NodeChange,
+  type EdgeChange,
   type NodeTypes,
   type OnNodesChange,
   type OnEdgesChange,
@@ -42,9 +44,10 @@ import type {
   ScanFindingItem,
 } from "@/types/api";
 
-const COL_W = 250;
-const ROW_H = 130;
-const COLS = 4;
+const COL_W = 230;
+const ROW_H = 120;
+const COLS = 5;
+const MAX_FINDINGS = 8;
 
 type TargetNodeData = {
   target: InvestigationTargetItem;
@@ -79,45 +82,61 @@ export function pairAggregation(relations: RelationItem[]) {
 
 function TargetNode({ data }: { data: TargetNodeData }) {
   const { target, expanded, findings, onToggle } = data;
+  const total = findings.length || target.finding_count || 0;
+  const shown = findings.slice(0, MAX_FINDINGS);
   return (
     <div
       style={{
-        width: 190,
-        borderRadius: "var(--radius-lg)",
+        width: 210,
+        borderRadius: "var(--radius-md)",
         border: "1px solid var(--border-subtle)",
         background: "var(--surface-raised)",
-        padding: 10,
-        boxShadow: "0 4px 16px rgba(0,0,0,0.35)",
+        padding: 8,
+        boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 13, fontWeight: 600 }}>
-        <span>{target.value}</span>
-        <button
-          onClick={onToggle}
-          aria-label={expanded ? "Replier" : "Deplier"}
-          style={{
-            cursor: "pointer",
-            background: "none",
-            border: "none",
-            transform: expanded ? "rotate(90deg)" : "rotate(0deg)",
-          }}
+      <div
+        role="button"
+        tabIndex={0}
+        aria-expanded={expanded}
+        onClick={onToggle}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onToggle();
+          }
+        }}
+        className="nodrag"
+        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6, fontSize: 12, fontWeight: 600, cursor: "pointer" }}
+      >
+        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{target.value}</span>
+        <span
+          aria-hidden
+          style={{ fontSize: 11, color: "var(--text-dim)", transform: expanded ? "rotate(90deg)" : "rotate(0deg)" }}
         >
           &#9656;
-        </button>
+        </span>
       </div>
-      <div style={{ fontSize: 11, color: "var(--text-dim)" }}>
-        {target.type} · {target.role || "?"}
+      <div style={{ fontSize: 10, color: "var(--text-dim)", marginTop: 2, display: "flex", justifyContent: "space-between", gap: 6 }}>
+        <span>{target.type}</span>
+        {total > 0 && <span>{total} finding{total > 1 ? "s" : ""}</span>}
       </div>
-      {expanded &&
-        findings.map((f) => (
-          <div key={f.id} style={{ marginTop: 8, padding: 6, fontSize: 11, background: "var(--surface)", borderRadius: 6 }}>
-            <div style={{ fontWeight: 500 }}>{f.value}</div>
-            <div style={{ color: "var(--text-dim)" }}>
-              {f.type}
-              {typeof f.confidence === "number" ? " " + Math.round(f.confidence * 100) + "%" : ""}
+      {expanded && (
+        <div style={{ marginTop: 6, maxHeight: 160, overflowY: "auto", display: "flex", flexDirection: "column", gap: 4 }}>
+          {shown.map((f) => (
+            <div key={f.id} style={{ padding: 4, fontSize: 11, background: "var(--surface)", borderRadius: 4 }}>
+              <div style={{ fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{f.value}</div>
+              <div style={{ color: "var(--text-dim)", fontSize: 10 }}>
+                {f.type}
+                {f.confidence ? " " + f.confidence : ""}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+          {findings.length > MAX_FINDINGS && (
+            <div style={{ fontSize: 10, color: "var(--text-dim)" }}>+{findings.length - MAX_FINDINGS} autres</div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -197,8 +216,16 @@ export function InvestigationGraph({ investigationId }: { investigationId: strin
       .filter((e): e is Edge => e !== null);
   }, [targets, relations]);
 
-  const [nodes, , onNodesChange] = useNodesState<Node>(gNodes);
-  const [edges, , onEdgesChange] = useEdgesState<Edge>(gEdges);
+  const [nodeChanges, setNodeChanges] = useState<NodeChange[]>([]);
+  const [edgeChanges, setEdgeChanges] = useState<EdgeChange[]>([]);
+  const nodes = useMemo(() => applyNodeChanges(nodeChanges, gNodes), [nodeChanges, gNodes]);
+  const edges = useMemo(() => applyEdgeChanges(edgeChanges, gEdges), [edgeChanges, gEdges]);
+  const onNodesChange = useCallback((changes: NodeChange[]) => {
+    setNodeChanges((c) => applyNodeChanges(c, changes));
+  }, []);
+  const onEdgesChange = useCallback((changes: EdgeChange[]) => {
+    setEdgeChanges((c) => applyEdgeChanges(c, changes));
+  }, []);
 
   const loading = invLoading || relLoading;
   const isError = invError || relError;
