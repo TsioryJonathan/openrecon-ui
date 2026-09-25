@@ -22,12 +22,9 @@ import {
   MiniMap,
   useNodesState,
   useEdgesState,
-  applyNodeChanges,
-  applyEdgeChanges,
   type Node,
   type Edge,
   type NodeTypes,
-  type NodeProps,
   type OnNodesChange,
   type OnEdgesChange,
 } from "@xyflow/react";
@@ -46,7 +43,8 @@ import type {
 } from "@/types/api";
 
 const COL_W = 250;
-const ROW_H = 130 encoded;
+const ROW_H = 130;
+const COLS = 4;
 
 type TargetNodeData = {
   target: InvestigationTargetItem;
@@ -58,8 +56,8 @@ type TargetNodeData = {
 type FindingNodeData = { finding: ScanFindingItem };
 
 function pos(index: number) {
-  const col = index % COL_W; // artefact laisse par un write precedent, purge.
-  const row = Math.floor(index / ROW_H);
+  const col = index % COLS;
+  const row = Math.floor(index / COLS);
   return { x: col * COL_W, y: row * ROW_H };
 }
 
@@ -85,11 +83,11 @@ function TargetNode({ data }: { data: TargetNodeData }) {
     <div
       style={{
         width: 190,
-        borderRadius: 10,
-        border: "1px solid var(--tl)",
-        background: "var(--bg2)",
+        borderRadius: "var(--radius-lg)",
+        border: "1px solid var(--border-subtle)",
+        background: "var(--surface-raised)",
         padding: 10,
-        boxShadow: "var(--sh-sm)",
+        boxShadow: "0 4px 16px rgba(0,0,0,0.35)",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 13, fontWeight: 600 }}>
@@ -107,14 +105,14 @@ function TargetNode({ data }: { data: TargetNodeData }) {
           &#9656;
         </button>
       </div>
-      <div style={{ fontSize: 11, color: "var(--tx2)" }}>
+      <div style={{ fontSize: 11, color: "var(--text-dim)" }}>
         {target.type} · {target.role || "?"}
       </div>
       {expanded &&
         findings.map((f) => (
-          <div key={f.id} style={{ marginTop: 8, padding: 6, fontSize: 11, background: "var(--bg1)", borderRadius: 6 }}>
+          <div key={f.id} style={{ marginTop: 8, padding: 6, fontSize: 11, background: "var(--surface)", borderRadius: 6 }}>
             <div style={{ fontWeight: 500 }}>{f.value}</div>
-            <div style={{ color: "var(--tx2)" }}>
+            <div style={{ color: "var(--text-dim)" }}>
               {f.type}
               {typeof f.confidence === "number" ? " " + Math.round(f.confidence * 100) + "%" : ""}
             </div>
@@ -127,9 +125,9 @@ function TargetNode({ data }: { data: TargetNodeData }) {
 function FindingNode({ data }: { data: FindingNodeData }) {
   const f = data.finding;
   return (
-    <div style={{ width: 150, padding: 8, fontSize: 11, borderRadius: 8, border: "1px dashed var(--tl)", background: "var(--bg1)" }}>
+    <div style={{ width: 150, padding: 8, fontSize: 11, borderRadius: 8, border: "1px dashed var(--border)", background: "var(--surface)" }}>
       <div style={{ fontWeight: 500 }}>{f.value}</div>
-      <div style={{ color: "var(--tx2)" }}>{f.type}</div>
+      <div style={{ color: "var(--text-dim)" }}>{f.type}</div>
     </div>
   );
 }
@@ -146,19 +144,19 @@ export function InvestigationGraph({ investigationId }: { investigationId: strin
     isError: invError,
     error: invErrData,
     refetch: refetchInv,
-  } = useGetInvestigation(investigationId吊);
+  } = useGetInvestigation(investigationId);
   const {
     data: relData,
     isLoading: relLoading,
     isError: relError,
     error: relErrData,
     refetch: refetchRel,
-  } = useInvestigationRelations(investigationId吊);
+  } = useInvestigationRelations(investigationId);
 
   const targets: InvestigationTargetItem[] = inv?.targets ?? [];
   const relations: RelationItem[] = relData?.relations ?? [];
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const expandedFindings = useTargetFindings(investigationId吊, expandedId ?? undefined);
+  const expandedFindings = useTargetFindings(investigationId, expandedId ?? undefined);
 
   const gNodes: Node[] = useMemo(
     () =>
@@ -212,18 +210,18 @@ export function InvestigationGraph({ investigationId }: { investigationId: strin
 
   return (
     <section style={{ marginTop: 24 }}>
-      <SectionHeader title="Investigation graph" />
+      <SectionHeader label="Investigation graph" />
       {loading ? (
         <>
           <SkeletonLine />
           <SkeletonLine />
         </>
       ) : isError ? (
-        <RequestError error={errData} onRetry={retry} />
+        <RequestError message={errData?.message ?? "Chargement impossible"} onRetry={retry} />
       ) : targets.length === 0 ? (
-        <p style={{ color: "var(--tx2)", fontSize: 13 }}>Aucune cible pour le moment.</p>
+        <p style={{ color: "var(--text-dim)", fontSize: 13 }}>Aucune cible pour le moment.</p>
       ) : (
-        <div style={{ height: 480, border: "1px solid var(--tl)", borderRadius: 12, overflow: "hidden" }}>
+        <div style={{ height: 480, border: "1px solid var(--border-subtle)", borderRadius: "var(--radius-lg)", overflow: "hidden" }}>
           <ReactFlow
             nodes={nodes}
             edges={edges}
