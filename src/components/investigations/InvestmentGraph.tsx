@@ -44,10 +44,11 @@ import type {
   ScanFindingItem,
 } from "@/types/api";
 
-const COL_W = 230;
-const ROW_H = 120;
-const COLS = 5;
-const MAX_FINDINGS = 8;
+const COL_W = 200;
+const ROW_H = 110;
+const COLS = 6;
+const MAX_FINDINGS = 6;
+const MAX_NODES = 40;
 
 type TargetNodeData = {
   target: InvestigationTargetItem;
@@ -175,11 +176,33 @@ export function InvestigationGraph({ investigationId }: { investigationId: strin
   const targets: InvestigationTargetItem[] = inv?.targets ?? [];
   const relations: RelationItem[] = relData?.relations ?? [];
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const expandedFindings = useTargetFindings(investigationId, expandedId);
+  const [scope, setScope] = useState<"linked" | "all">("linked");
+
+  const linkedIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const key of pairAggregation(relations).keys()) {
+      const parts = key.split("|");
+      ids.add(parts[0]);
+      ids.add(parts[1]);
+    }
+    return ids;
+  }, [relations]);
+
+  const linkedCount = linkedIds.size;
+  const visibleTargets = useMemo(() => {
+    const linked = targets.filter((t) => linkedIds.has(t.id));
+    const base = scope === "linked" && linked.length > 0 ? linked : targets;
+    return base.slice(0, MAX_NODES);
+  }, [targets, linkedIds, scope]);
+  const visibleCount = visibleTargets.length;
+  const isTruncated = visibleCount < (scope === "linked" && linkedCount > 0 ? linkedCount : targets.length);
+  const activeId =
+    expandedId && visibleTargets.some((t) => t.id === expandedId) ? expandedId : null;
+  const expandedFindings = useTargetFindings(investigationId, activeId);
 
   const gNodes: Node[] = useMemo(
     () =>
-      targets.map((t, i) => {
+      visibleTargets.map((t, i) => {
         const p = pos(i);
         return {
           id: "t-" + t.id,
@@ -193,19 +216,19 @@ export function InvestigationGraph({ investigationId }: { investigationId: strin
           } as TargetNodeData,
         } as Node;
       }),
-    [targets, expandedId, expandedFindings.data]
+    [visibleTargets, expandedId, expandedFindings.data]
   );
+
+  const pairCount = useMemo(() => pairAggregation(relations).size, [relations]);
 
   const gEdges: Edge[] = useMemo(() => {
     const idx = new Map<string, number>();
-    targets.forEach((t, i) => idx.set(t.id, i));
+    visibleTargets.forEach((t, i) => idx.set(t.id, i));
     const agg = pairAggregation(relations);
     return Array.from(agg.entries())
       .map(([key, a]) => {
         const [x, y] = key.split("|");
-        const si = idx.get(x);
-        const ti = idx.get(y);
-        if (si === undefined || ti === undefined) return null;
+        if (!idx.has(x) || !idx.has(y)) return null;
         return {
           id: "e-" + key,
           source: "t-" + x,
@@ -214,7 +237,7 @@ export function InvestigationGraph({ investigationId }: { investigationId: strin
         } as Edge;
       })
       .filter((e): e is Edge => e !== null);
-  }, [targets, relations]);
+  }, [visibleTargets, relations]);
 
   const [nodeChanges, setNodeChanges] = useState<NodeChange[]>([]);
   const [edgeChanges, setEdgeChanges] = useState<EdgeChange[]>([]);
@@ -245,10 +268,32 @@ export function InvestigationGraph({ investigationId }: { investigationId: strin
         </>
       ) : isError ? (
         <RequestError message={errData?.message ?? "Chargement impossible"} onRetry={retry} />
-      ) : targets.length === 0 ? (
+      ) : visibleCount === 0 ? (
         <p style={{ color: "var(--text-dim)", fontSize: 13 }}>Aucune cible pour le moment.</p>
       ) : (
-        <div style={{ height: 480, border: "1px solid var(--border-subtle)", borderRadius: "var(--radius-lg)", overflow: "hidden" }}>
+        <div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 8 }}>
+            <span style={{ fontSize: 11, color: "var(--text-dim)" }}>
+              {visibleCount} cible{visibleCount > 1 ? "s" : ""} affichee{visibleCount > 1 ? "s" : ""}
+              {scope === "linked" && linkedCount > 0 ? " (liees uniquement)" : ""}
+              {isTruncated ? " - plafonne a " + MAX_NODES : ""} · {pairCount} lien{pairCount > 1 ? "s" : ""}
+            </span>
+            <button
+              onClick={() => setScope(scope === "linked" ? "all" : "linked")}
+              style={{
+                fontSize: 11,
+                color: "var(--text-muted)",
+                background: "none",
+                border: "1px solid var(--border-subtle)",
+                borderRadius: "var(--radius-sm)",
+                padding: "4px 8px",
+                cursor: "pointer",
+              }}
+            >
+              {scope === "linked" ? "Afficher toutes" : "Liees seulement"}
+            </button>
+          </div>
+          <div style={{ height: 480, border: "1px solid var(--border-subtle)", borderRadius: "var(--radius-lg)", overflow: "hidden" }}>
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -264,6 +309,7 @@ export function InvestigationGraph({ investigationId }: { investigationId: strin
             <Controls />
             <MiniMap pannable zoomable />
           </ReactFlow>
+          </div>
         </div>
       )}
     </section>
