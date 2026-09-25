@@ -347,21 +347,43 @@ export function InvestigationGraph({ investigationId }: { investigationId: strin
       .filter((e): e is Edge => e !== null);
   }, [visibleTargets, pairs]);
 
-  const [nodeChanges, setNodeChanges] = useState<NodeChange[]>([]);
-  const [edgeChanges, setEdgeChanges] = useState<EdgeChange[]>([]);
-  const nodes = useMemo(() => applyNodeChanges(nodeChanges, gNodes), [nodeChanges, gNodes]);
-  const edges = useMemo(() => applyEdgeChanges(edgeChanges, gEdges), [edgeChanges, gEdges]);
+  const [nodes, setNodes] = useState<Node[]>([]);
+  const [edges, setEdges] = useState<Edge[]>([]);
+
+  /* gNodes/gEdges sont derives des data : on synchronise l'etat en preservant la
+     position et les mesures posees par l'utilisateur, sinon le deplacement est
+     perdu a chaque rechargement. On ne rejoue pas un journal de changes, qui
+     garderait un `measured` perime sur un noeud deploie. */
+  useEffect(() => {
+    setNodes((prev) => {
+      const byId = new Map<string, Node>(prev.map((n) => [n.id, n] as const));
+      return gNodes.map((g) => {
+        const old = byId.get(g.id);
+        if (!old) return g;
+        return { ...g, position: old.position, measured: old.measured, selected: old.selected };
+      });
+    });
+  }, [gNodes]);
+
+  useEffect(() => {
+    setEdges((prev) => {
+      const byId = new Map<string, Edge>(prev.map((e) => [e.id, e] as const));
+      return gEdges.map((g) => {
+        const old = byId.get(g.id);
+        return old ? { ...g, selected: old.selected } : g;
+      });
+    });
+  }, [gEdges]);
+
   const onNodesChange = useCallback((changes: NodeChange[]) => {
-    setNodeChanges((c) => applyNodeChanges(c, changes));
+    setNodes((nds) => applyNodeChanges(changes, nds));
   }, []);
   const onEdgesChange = useCallback((changes: EdgeChange[]) => {
-    setEdgeChanges((c) => applyEdgeChanges(c, changes));
+    setEdges((eds) => applyEdgeChanges(changes, eds));
   }, []);
 
   const { fitView } = useReactFlow();
   useEffect(() => {
-    setNodeChanges([]);
-    setEdgeChanges([]);
     const t = setTimeout(() => {
       fitView({ padding: 0.2, duration: 300 });
     }, 50);
