@@ -109,6 +109,7 @@
 html {
   background: var(--bg);
   color: var(--text);
+  color-scheme: dark;
   font-family: var(--font-body);
   font-weight: 550;
   font-size: 16px;
@@ -266,6 +267,64 @@ a {
 .section-divider {
   border-top: 1px solid var(--border-subtle);
   margin: var(--space-8) 0;
+}
+
+/* ─── React Flow (theme sombre) ──────────────────────────────────────────────────
+   La lib importe son CSS par defaut, concu pour un fond clair : pastilles de
+   label d'aretes en #fff, Controls/MiniMap blancs, attribution translucide
+   blanche. Resultat : du chrome blanc sur notre fond #09090B.
+   On sert d'abord le theme sombre natif de la lib (className="dark" sur
+   <ReactFlow>), puis on re-tokenise via les variables --xy-* pour coller a la
+   palette de l'app. Selecteur .graph-canvas .react-flow.dark = specificite
+   (0,3,0) > (0,2,0) de la lib, donc gagnant quel que soit l'ordre d'import. */
+.graph-canvas .react-flow,
+.graph-canvas .react-flow.dark {
+  --xy-background-color: var(--bg);
+  --xy-node-background-color-default: var(--surface-raised);
+  --xy-node-color-default: var(--text);
+  --xy-node-border-default: 1px solid var(--border-subtle);
+  --xy-node-border-radius-default: var(--radius-md);
+  --xy-node-boxshadow-hover-default: 0 0 0 1px var(--border);
+  --xy-node-boxshadow-selected-default: 0 0 0 1px var(--accent);
+  --xy-edge-stroke-default: var(--text-dim);
+  --xy-edge-stroke-selected-default: var(--accent);
+  --xy-edge-label-background-color-default: var(--surface-raised);
+  --xy-edge-label-color-default: var(--text);
+  --xy-connectionline-stroke-default: var(--accent);
+  --xy-controls-box-shadow-default: none;
+  --xy-controls-button-background-color-default: var(--surface-raised);
+  --xy-controls-button-background-color-hover-default: var(--surface);
+  --xy-controls-button-border-color-default: var(--border-subtle);
+  --xy-controls-button-color-default: var(--text-muted);
+  --xy-controls-button-color-hover-default: var(--text);
+  --xy-minimap-background-color-default: var(--surface);
+  --xy-minimap-mask-background-color-default: rgba(9, 9, 11, 0.65);
+  --xy-minimap-node-background-color-default: var(--border);
+  --xy-minimap-node-stroke-color-default: transparent;
+  --xy-attribution-background-color-default: rgba(24, 24, 27, 0.6);
+  --xy-handle-background-color-default: var(--surface-raised);
+  --xy-handle-border-color-default: var(--border);
+  --xy-selection-background-color-default: rgba(231, 168, 62, 0.08);
+  --xy-selection-border-default: 1px dotted var(--accent);
+  --xy-resize-background-color-default: var(--accent);
+}
+
+/* Non pilotables par variable : la lib ne declare aucun fill sur le texte des
+   labels (il reste noir sur notre pastille sombre) et ne borde pas le MiniMap. */
+.graph-canvas .react-flow__edge .react-flow__edge-text {
+  fill: var(--text);
+  font-family: var(--font-mono);
+}
+.graph-canvas .react-flow__edge-textbg {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+.graph-canvas .react-flow__minimap {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+.graph-canvas .react-flow__attribution a {
+  color: var(--text-dim);
 }
 
 /* ─── Report markdown ───────────────────────────────────────────────────────── */

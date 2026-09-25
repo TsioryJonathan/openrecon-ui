@@ -423,8 +423,12 @@ export function InvestigationGraph({ investigationId }: { investigationId: strin
               </button>
             </span>
           </div>
-          <div style={{ height: 480, border: "1px solid var(--border-subtle)", borderRadius: "var(--radius-lg)", overflow: "hidden" }}>
+          <div
+            className="graph-canvas"
+            style={{ height: 480, border: "1px solid var(--border-subtle)", borderRadius: "var(--radius-lg)", overflow: "hidden" }}
+          >
           <ReactFlow
+            className="dark"
             nodes={nodes}
             edges={edges}
             nodeTypes={nodeTypes}
@@ -435,9 +439,13 @@ export function InvestigationGraph({ investigationId }: { investigationId: strin
             minZoom={0.4}
             maxZoom={1.6}
           >
-            <Background gap={16} />
+            <Background gap={16} color="#27272A" />
             <Controls />
-            <MiniMap pannable zoomable />
+            <MiniMap
+              pannable
+              zoomable
+              nodeColor={(n) => (n.id === "t-" + focusId ? "#E7A83E" : "#3F3F46")}
+            />
           </ReactFlow>
           </div>
         </div>
