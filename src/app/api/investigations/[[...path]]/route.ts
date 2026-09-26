@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth";
+import { signIdentity, IDENTITY_HEADERS } from "@/lib/identity";
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -23,8 +24,19 @@ async function forward(
   const hasBody = request.method !== "GET" && request.method !== "HEAD";
   const headers: Record<string, string> = {
     "X-API-Key": process.env.API_KEY ?? "",
-    "X-User-Id": session.user.id,
   };
+
+  // Signed identity assertion (HMAC). Without USER_SIGNING_SECRET the proxy
+  // sends no identity headers: local dev still works when the API runs with
+  // AUTH_ALLOW_DEGRADED=true, production APIs reject the request (fail-closed).
+  const secret = process.env.USER_SIGNING_SECRET;
+  if (secret) {
+    const { exp, sig } = signIdentity(session.user.id, secret);
+    headers[IDENTITY_HEADERS.userId] = session.user.id;
+    headers[IDENTITY_HEADERS.userExp] = String(exp);
+    headers[IDENTITY_HEADERS.userSig] = sig;
+  }
+
   if (hasBody) {
     headers["Content-Type"] = "application/json";
   }

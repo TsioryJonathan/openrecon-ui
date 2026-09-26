@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -15,6 +15,7 @@ import {
   useInvestigationRelations,
   useInvestigationReport,
 } from "@/hooks/useApi";
+import { copyText, downloadTextFile, reportFilename } from "@/lib/report";
 import type { RelationItem } from "@/types/api";
 
 function Modal({
@@ -153,13 +154,36 @@ export function RelationsModal({
 
 export function ReportModal({
   investigationId,
+  investigationName,
   onClose,
 }: {
   investigationId: string;
+  investigationName?: string;
   onClose: () => void;
 }) {
   const { data, isLoading, isError, error, refetch } =
     useInvestigationReport(investigationId);
+  const [copyState, setCopyState] = useState<"idle" | "ok" | "error">(
+    "idle"
+  );
+
+  async function handleCopy() {
+    if (!data) return;
+    try {
+      await copyText(data);
+      setCopyState("ok");
+    } catch {
+      setCopyState("error");
+    }
+  }
+
+  function handleDownload() {
+    if (!data) return;
+    downloadTextFile(
+      data,
+      reportFilename(investigationName ?? investigationId)
+    );
+  }
 
   let body: ReactNode;
   if (isLoading) {
@@ -182,7 +206,47 @@ export function ReportModal({
     );
   }
 
-  return <Modal title="Report" onClose={onClose}>{body}</Modal>;
+  return (
+    <Modal title="Report" onClose={onClose}>
+      {data && (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "flex-end",
+            gap: "0.5rem",
+            marginBottom: "1rem",
+          }}
+        >
+          <span
+            aria-live="polite"
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "var(--text-2xs)",
+              color:
+                copyState === "error"
+                  ? "var(--danger, #f87171)"
+                  : "var(--accent)",
+              marginRight: "auto",
+            }}
+          >
+            {copyState === "ok"
+              ? "Copied to clipboard"
+              : copyState === "error"
+              ? "Copy failed"
+              : ""}
+          </span>
+          <GhostButton type="button" onClick={handleCopy}>
+            Copy markdown
+          </GhostButton>
+          <GhostButton type="button" onClick={handleDownload}>
+            Download .md
+          </GhostButton>
+        </div>
+      )}
+      {body}
+    </Modal>
+  );
 }
 
 export function RelationRow({ relation }: { relation: RelationItem }) {

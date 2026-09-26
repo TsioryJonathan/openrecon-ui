@@ -14,6 +14,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -35,8 +36,11 @@ import "@xyflow/react/dist/style.css";
 
 import { SectionHeader, SkeletonLine, RequestError } from "@/components/ui";
 import {
+  useAdaptiveScan,
+  useCorrelateInvestigation,
   useGetInvestigation,
   useInvestigationRelations,
+  useScanInInvestigation,
   useTargetFindings,
 } from "@/hooks/useApi";
 import type {
@@ -44,6 +48,13 @@ import type {
   RelationItem,
   ScanFindingItem,
 } from "@/types/api";
+import {
+  dominantType,
+  intraAggregation,
+  neighboursOf,
+  pairAggregation,
+} from "./graph-aggregations";
+import { NodeActionsMenu, type NodeAction } from "./NodeActionsMenu";
 
 const COL_W = 200;
 const ROW_H = 110;
@@ -56,6 +67,7 @@ type TargetNodeData = {
   expanded: boolean;
   findings: ScanFindingItem[];
   onToggle: () => void;
+  onActions: (e: React.MouseEvent) => void;
   linkCount: number;
   intraCount: number;
   focused: boolean;
@@ -70,67 +82,13 @@ function pos(index: number) {
   return { x: col * COL_W, y: row * ROW_H };
 }
 
-type PairAgg = { count: number; types: Map<string, number> };
-
-function dominantType(types: Map<string, number>): string | null {
-  let best: string | null = null;
-  let bestN = 0;
-  types.forEach((n, t) => {
-    if (n > bestN) {
-      bestN = n;
-      best = t;
-    }
-  });
-  return best;
-}
-
-function bump(pair: Map<string, PairAgg>, key: string, r: RelationItem) {
-  const agg = pair.get(key) ?? { count: 0, types: new Map<string, number>() };
-  agg.count += 1;
-  if (r.relation_type) {
-    agg.types.set(r.relation_type, (agg.types.get(r.relation_type) ?? 0) + 1);
-  }
-  pair.set(key, agg);
-}
-
-export function pairAggregation(relations: RelationItem[]) {
-  const pair = new Map<string, PairAgg>();
-  for (const r of relations) {
-    const a = r.source_finding_target_id;
-    const b = r.target_finding_target_id;
-    if (!a || !b || a === b) continue;
-    bump(pair, a < b ? a + "|" + b : b + "|" + a, r);
-  }
-  return pair;
-}
-
-export function intraAggregation(relations: RelationItem[]) {
-  const intra = new Map<string, PairAgg>();
-  for (const r of relations) {
-    const a = r.source_finding_target_id;
-    const b = r.target_finding_target_id;
-    if (!a || !b || a !== b) continue;
-    bump(intra, a, r);
-  }
-  return intra;
-}
-
-export function neighboursOf(pairs: Map<string, PairAgg>, id: string) {
-  const out = new Set<string>([id]);
-  pairs.forEach((_agg, key) => {
-    const parts = key.split("|");
-    if (parts[0] === id) out.add(parts[1]);
-    else if (parts[1] === id) out.add(parts[0]);
-  });
-  return out;
-}
-
 function TargetNode({ data }: { data: TargetNodeData }) {
   const { target, expanded, findings, onToggle } = data;
   const total = findings.length || target.finding_count || 0;
   const shown = findings.slice(0, MAX_FINDINGS);
   return (
     <div
+      onContextMenu={data.onActions}
       style={{
         width: 180,
         borderRadius: "var(--radius-md)",
@@ -155,11 +113,34 @@ function TargetNode({ data }: { data: TargetNodeData }) {
         style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6, fontSize: 12, fontWeight: 600, cursor: "pointer" }}
       >
         <span title={target.value} style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{target.value}</span>
-        <span
-          aria-hidden
-          style={{ fontSize: 11, color: "var(--text-dim)", transform: expanded ? "rotate(90deg)" : "rotate(0deg)" }}
-        >
-          &#9656;
+        <span style={{ display: "flex", alignItems: "center", gap: 2, flexShrink: 0 }}>
+          <button
+            type="button"
+            aria-label={`Actions for ${target.value}`}
+            aria-haspopup="menu"
+            onClick={(e) => {
+              e.stopPropagation();
+              data.onActions(e);
+            }}
+            className="nodrag"
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "var(--text-dim)",
+              cursor: "pointer",
+              padding: "0 2px",
+              fontSize: 12,
+              lineHeight: 1,
+            }}
+          >
+            &#8942;
+          </button>
+          <span
+            aria-hidden
+            style={{ fontSize: 11, color: "var(--text-dim)", transform: expanded ? "rotate(90deg)" : "rotate(0deg)" }}
+          >
+            &#9656;
+          </span>
         </span>
       </div>
       <div style={{ fontSize: 10, color: "var(--text-dim)", marginTop: 2, display: "flex", justifyContent: "space-between", gap: 6 }}>
@@ -254,6 +235,82 @@ export function InvestigationGraph({ investigationId }: { investigationId: strin
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [scope, setScope] = useState<"linked" | "all">("linked");
   const [focusId, setFocusId] = useState<string | null>(null);
+  const [menu, setMenu] = useState<{
+    targetId: string;
+    x: number;
+    y: number;
+  } | null>(null);
+
+  const queryClient = useQueryClient();
+  const scanMut = useScanInInvestigation();
+  const adaptiveMut = useAdaptiveScan();
+  const correlateMut = useCorrelateInvestigation();
+
+  const busyAction: NodeAction | null = scanMut.isPending
+    ? "scan"
+    : adaptiveMut.isPending
+    ? "adaptive"
+    : correlateMut.isPending
+    ? "correlate"
+    : null;
+  const actionError: unknown =
+    scanMut.error ?? adaptiveMut.error ?? correlateMut.error ?? null;
+  const actionErrorMsg = (() => {
+    if (!actionError) return null;
+    const e = actionError as { detail?: string; message?: string };
+    return e.detail ?? e.message ?? "Action failed";
+  })();
+
+  const menuTarget = useMemo(
+    () => (menu ? targets.find((t) => t.id === menu.targetId) ?? null : null),
+    [menu, targets]
+  );
+
+  const openActions = useCallback(
+    (targetId: string, e: { clientX: number; clientY: number; preventDefault: () => void }) => {
+      e.preventDefault();
+      const maxX = Math.max(8, window.innerWidth - 190);
+      const maxY = Math.max(8, window.innerHeight - 170);
+      setMenu({
+        targetId,
+        x: Math.min(Math.max(8, e.clientX), maxX),
+        y: Math.min(Math.max(8, e.clientY), maxY),
+      });
+    },
+    []
+  );
+
+  const runAction = useCallback(
+    async (action: NodeAction) => {
+      if (!menu || busyAction) return;
+      const target = targets.find((t) => t.id === menu.targetId);
+      try {
+        if (action === "scan" && target) {
+          await scanMut.mutateAsync({
+            investigationId,
+            targetType: target.type,
+            targetValue: target.value,
+          });
+        } else if (action === "adaptive" && target) {
+          await adaptiveMut.mutateAsync({
+            investigationId,
+            targetType: target.type,
+            targetValue: target.value,
+          });
+        } else if (action === "correlate") {
+          await correlateMut.mutateAsync({ investigationId });
+        } else {
+          setMenu(null);
+          return;
+        }
+        await queryClient.invalidateQueries({ queryKey: ["investigations"] });
+        setMenu(null);
+      } catch {
+        // surfaced through the mutation error state in the menu
+      }
+    },
+    [menu, busyAction, targets, investigationId, scanMut, adaptiveMut, correlateMut, queryClient]
+  );
 
   const pairs = useMemo(() => pairAggregation(relations), [relations]);
   const intra = useMemo(() => intraAggregation(relations), [relations]);
@@ -313,6 +370,7 @@ export function InvestigationGraph({ investigationId }: { investigationId: strin
             expanded: activeId === t.id,
             findings: activeId === t.id ? (expandedFindings.data?.findings ?? []) : [],
             onToggle: () => setExpandedId(expandedId === t.id ? null : t.id),
+            onActions: (e: React.MouseEvent) => openActions(t.id, e),
             linkCount: linkCountOf(t.id),
             intraCount: intra.get(t.id)?.count ?? 0,
             focused: focusId === t.id,
@@ -320,7 +378,7 @@ export function InvestigationGraph({ investigationId }: { investigationId: strin
           } as TargetNodeData,
         } as Node;
       }),
-    [visibleTargets, activeId, expandedId, expandedFindings.data, linkCountOf, intra, focusId]
+    [visibleTargets, activeId, expandedId, expandedFindings.data, linkCountOf, intra, focusId, openActions]
   );
 
   const pairCount = useMemo(() => pairs.size, [pairs]);
@@ -471,6 +529,16 @@ export function InvestigationGraph({ investigationId }: { investigationId: strin
           </ReactFlow>
           </div>
         </div>
+      )}
+      {menu && menuTarget && (
+        <NodeActionsMenu
+          targetLabel={menuTarget.value}
+          position={{ x: menu.x, y: menu.y }}
+          busy={busyAction}
+          error={actionErrorMsg}
+          onAction={runAction}
+          onClose={() => setMenu(null)}
+        />
       )}
     </section>
   );

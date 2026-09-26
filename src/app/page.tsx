@@ -6,6 +6,7 @@ import {
   IconDorks,
   IconArrow,
 } from "@/lib/icons";
+import { getTotalPlatforms, platformCountLabel } from "@/lib/platforms";
 
 // ─── Instrument index data ────────────────────────────────────────────────────
 
@@ -16,7 +17,8 @@ const INSTRUMENTS = [
     href:        "/sherlock",
     Icon:        IconSherlock,
     label:       "USERNAME RECONNAISSANCE",
-    description: "Scan 480+ platforms and surface every account tied to an identity.",
+    // Replaced at render time with the live API platform count.
+    description: "Scan platforms and surface every account tied to an identity.",
   },
   {
     index:       "02",
@@ -46,7 +48,17 @@ const INSTRUMENTS = [
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default function HomePage() {
+export default async function HomePage() {
+  // Live catalog size from the API; falls back to the static count offline.
+  const platformCount = platformCountLabel(await getTotalPlatforms());
+  const instruments = INSTRUMENTS.map((item) =>
+    item.id === "SHERLOCK"
+      ? {
+          ...item,
+          description: `Scan ${platformCount} and surface every account tied to an identity.`,
+        }
+      : item
+  );
   return (
     <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
 
@@ -252,7 +264,7 @@ export default function HomePage() {
 
         {/* Index list */}
         <ol style={{ listStyle: "none" }}>
-          {INSTRUMENTS.map(({ index, id, href, Icon, label, description }) => (
+          {instruments.map(({ index, id, href, Icon, label, description }) => (
             <li key={id}>
               <Link
                 href={href}

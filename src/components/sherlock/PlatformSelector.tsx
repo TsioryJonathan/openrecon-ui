@@ -284,6 +284,7 @@ const PlatformDialog = ({
           <button
             type="button"
             onClick={selectAll}
+            aria-label="Select all platforms"
             className="t-label"
             style={{
               background:  "transparent",
@@ -300,6 +301,7 @@ const PlatformDialog = ({
           <button
             type="button"
             onClick={selectNone}
+            aria-label="Select no platforms"
             className="t-label"
             style={{
               background: "transparent",

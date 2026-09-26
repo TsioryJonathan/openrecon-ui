@@ -783,6 +783,7 @@ export function InvestigationDetail({
       {reportOpen && (
         <ReportModal
           investigationId={investigationId}
+          investigationName={inv?.name}
           onClose={() => setReportOpen(false)}
         />
       )}
