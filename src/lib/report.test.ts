@@ -25,7 +25,7 @@ describe("copyText", () => {
 });
 
 describe("downloadTextFile", () => {
-  const createObjectURL = vi.fn(() => "blob:test-url");
+  const createObjectURL = vi.fn<(blob: Blob) => string>(() => "blob:test-url");
   const revokeObjectURL = vi.fn();
   let clickSpy: ReturnType<typeof vi.spyOn>;
 
@@ -49,7 +49,7 @@ describe("downloadTextFile", () => {
     downloadTextFile("# report", "case-report.md");
 
     expect(createObjectURL).toHaveBeenCalledTimes(1);
-    const blob = createObjectURL.mock.calls[0][0] as Blob;
+    const blob = createObjectURL.mock.calls[0][0];
     expect(blob.type).toBe("text/markdown;charset=utf-8");
     expect(clickSpy).toHaveBeenCalledTimes(1);
     expect(revokeObjectURL).toHaveBeenCalledWith("blob:test-url");
