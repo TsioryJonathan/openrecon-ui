@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Settings2, X, Search, Check } from "lucide-react";
 import { useSites } from "@/hooks/useApi";
 import type { CategorySites } from "@/types/api";
-import { SkeletonLine } from "@/components/ui";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -202,7 +201,6 @@ const PlatformDialog = ({
     const cat = categories.find((c) => c.name === catName);
     if (!cat) return;
     const current = getEffectiveSet();
-    const catSet = new Set(cat.sites);
     const allCatSelected = cat.sites.every((s) => current.has(s));
     const next = new Set(current);
     if (allCatSelected) {
@@ -448,7 +446,7 @@ const PlatformDialog = ({
                 padding: "1rem",
               }}
             >
-              No platforms match "{query}"
+              No platforms match &quot;{query}&quot;
             </p>
           ) : (
             <>

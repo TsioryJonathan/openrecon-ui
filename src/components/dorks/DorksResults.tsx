@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import type { DorkGenerateResponse, DorkCategory, DorkItem } from "@/types/api";
-import { FilterBar, CopyButton, AccordionSection } from "@/components/ui";
+import { FilterBar, AccordionSection } from "@/components/ui";
 import { IconDorks } from "@/lib/icons";
 import { ExternalLink, Copy, Check } from "lucide-react";
 

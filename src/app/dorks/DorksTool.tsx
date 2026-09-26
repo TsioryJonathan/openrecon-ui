@@ -8,7 +8,6 @@ import {
   RequestError,
   Divider,
   SkeletonLine,
-  SectionHeader,
 } from "@/components/ui";
 import { DorksResults } from "@/components/dorks/DorksResults";
 import { useGenerateDorks } from "@/hooks/useApi";

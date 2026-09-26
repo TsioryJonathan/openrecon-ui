@@ -230,8 +230,14 @@ export function InvestigationGraph({ investigationId }: { investigationId: strin
     refetch: refetchRel,
   } = useInvestigationRelations(investigationId);
 
-  const targets: InvestigationTargetItem[] = inv?.targets ?? [];
-  const relations: RelationItem[] = relData?.relations ?? [];
+  const targets: InvestigationTargetItem[] = useMemo(
+    () => inv?.targets ?? [],
+    [inv?.targets],
+  );
+  const relations: RelationItem[] = useMemo(
+    () => relData?.relations ?? [],
+    [relData?.relations],
+  );
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [scope, setScope] = useState<"linked" | "all">("linked");
   const [focusId, setFocusId] = useState<string | null>(null);
@@ -413,6 +419,7 @@ export function InvestigationGraph({ investigationId }: { investigationId: strin
      perdu a chaque rechargement. On ne rejoue pas un journal de changes, qui
      garderait un `measured` perime sur un noeud deploie. */
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- sync data -> etat React Flow en preservant positions/mesures utilisateur
     setNodes((prev) => {
       const byId = new Map<string, Node>(prev.map((n) => [n.id, n] as const));
       return gNodes.map((g) => {
@@ -424,6 +431,7 @@ export function InvestigationGraph({ investigationId }: { investigationId: strin
   }, [gNodes]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- sync data -> etat React Flow en preservant la selection
     setEdges((prev) => {
       const byId = new Map<string, Edge>(prev.map((e) => [e.id, e] as const));
       return gEdges.map((g) => {
