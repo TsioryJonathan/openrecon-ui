@@ -7,6 +7,7 @@ Next.js (App Router), TypeScript, React. Dark, terminal-inspired dashboard.
 
 ```bash
 npm install
+cp .env.example .env   # then fill in real values
 npm run dev
 ```
 
